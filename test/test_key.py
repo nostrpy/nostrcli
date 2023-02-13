@@ -1,11 +1,13 @@
 from nostr.event import Event, EncryptedDirectMessage
 from nostr.key import PrivateKey
 
+
 def test_eq_true():
     """ __eq__ should return True when PrivateKeys are equal """
     pk1 = PrivateKey()
     pk2 = PrivateKey(pk1.raw_secret)
     assert pk1 == pk2
+
 
 def test_eq_false():
     """ __eq__ should return False when PrivateKeys are not equal """
@@ -13,6 +15,7 @@ def test_eq_false():
     pk2 = PrivateKey()
     assert pk1.raw_secret != pk2.raw_secret
     assert pk1 != pk2
+
 
 def test_from_nsec():
     """ PrivateKey.from_nsec should yield the source's raw_secret """
@@ -25,7 +28,6 @@ class TestEvent:
     def setup_class(self):
         self.sender_pk = PrivateKey()
         self.sender_pubkey = self.sender_pk.public_key.hex()
-
 
     def test_sign_event_is_valid(self):
         """ sign should create a signature that can be verified against Event.id """
