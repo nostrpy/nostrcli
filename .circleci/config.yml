@@ -31,6 +31,7 @@ jobs:
           name: install dependencies
           command: |
             python -m pip install --upgrade pip
+            python -m pip install -e .
             python -m pip install -r test/requirements.txt
       - run:
           name: run tests
@@ -52,6 +53,7 @@ jobs:
           name: install dependencies
           command: |
             python -m pip install --upgrade pip
+            python -m pip install -e .
             python -m pip install --upgrade -r test/requirements.txt
       - run:
           name: run tests
@@ -73,6 +75,7 @@ jobs:
           name: install dependencies
           command: |
             python -m pip install --upgrade pip
+            python -m pip install -e .
             python -m pip install --upgrade -r test/requirements.txt
       - run:
           name: run tests
@@ -94,6 +97,7 @@ jobs:
           name: install dependencies
           command: |
             python -m pip install --upgrade pip
+            python -m pip install -e .
             python -m pip install --upgrade -r test/requirements.txt
       - run:
           name: run tests
@@ -115,6 +119,7 @@ jobs:
           name: install dependencies
           command: |
             python -m pip install --upgrade pip
+            python -m pip install -e .
             python -m pip install --upgrade -r test/requirements.txt
       - run:
           name: run tests

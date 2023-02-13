@@ -1,9 +1,9 @@
-# nostrcli
+# nostrpy
 CLI for [Nostr](https://github.com/nostr-protocol/nostr)
 
 ## Installation
 ```bash
-❯ pip install nostrcli
+❯ pip install nostrpy
 ```
 
 ## Usage

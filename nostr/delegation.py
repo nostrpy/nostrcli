@@ -13,16 +13,16 @@ class Delegation:
     @property
     def expires(self) -> int:
         return int(time.time()) + self.duration_secs
-    
+
     @property
     def conditions(self) -> str:
         return f"kind={self.event_kind}&created_at<{self.expires}"
-    
+
     @property
     def delegation_token(self) -> str:
         return f"nostr:delegation:{self.delegatee_pubkey}:{self.conditions}"
 
-    def get_tag(self) -> list[str]:
+    def get_tag(self) -> 'list[str]':
         """ Called by Event """
         return [
             "delegation",
