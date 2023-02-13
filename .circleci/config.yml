@@ -97,7 +97,7 @@ workflows:
   version: 2
   build:
     jobs:
-      - build-python3.8:
+      - build-python3.8
       - build-python3.9:
           requires:
             - build-python3.8
