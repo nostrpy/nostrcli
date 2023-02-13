@@ -2,12 +2,11 @@ import time
 import json
 from dataclasses import dataclass, field
 from enum import IntEnum
-from typing import List
+from typing import List, Optional
 from secp256k1 import PrivateKey, PublicKey
 from hashlib import sha256
 
 from .message_type import ClientMessageType
-
 
 
 class EventKind(IntEnum):
@@ -17,27 +16,24 @@ class EventKind(IntEnum):
     CONTACTS = 3
     ENCRYPTED_DIRECT_MESSAGE = 4
     DELETE = 5
-
-
+    BOOST = 6
+    REACTION = 7
 
 @dataclass
 class Event:
-    content: str = None
-    public_key: str = None
-    created_at: int = None
-    kind: int = EventKind.TEXT_NOTE
-    tags: List[List[str]] = field(default_factory=list)  # Dataclasses require special handling when the default value is a mutable type
-    signature: str = None
+    content: Optional[str] = None
+    public_key: Optional[str] = None
+    created_at: Optional[int] = None
+    kind: Optional[int] = EventKind.TEXT_NOTE
+    tags: List[List[str]] = field(default_factory=list)
+    signature: Optional[str] = None
 
-
-    def __post_init__(self):
-        if self.content is not None and not isinstance(self.content, str):
-            # DMs initialize content to None but all other kinds should pass in a str
+    def __post_init__(self) -> None:
+        if self.content and not isinstance(self.content, str):
             raise TypeError("Argument 'content' must be of type str")
 
         if self.created_at is None:
             self.created_at = int(time.time())
-
 
     @staticmethod
     def serialize(public_key: str, created_at: int, kind: int, tags: List[List[str]], content: str) -> bytes:
@@ -45,50 +41,60 @@ class Event:
         data_str = json.dumps(data, separators=(',', ':'), ensure_ascii=False)
         return data_str.encode()
 
-
     @staticmethod
     def compute_id(public_key: str, created_at: int, kind: int, tags: List[List[str]], content: str):
         return sha256(Event.serialize(public_key, created_at, kind, tags, content)).hexdigest()
-
 
     @property
     def id(self) -> str:
         # Always recompute the id to reflect the up-to-date state of the Event
         return Event.compute_id(self.public_key, self.created_at, self.kind, self.tags, self.content)
 
+    def sign(self, private_key_hex: str) -> None:
+        sk = PrivateKey(bytes.fromhex(private_key_hex))
+        sig = sk.schnorr_sign(bytes.fromhex(self.id), None, raw=True)
+        self.signature = sig.hex()
 
     def add_pubkey_ref(self, pubkey:str):
         """ Adds a reference to a pubkey as a 'p' tag """
         self.tags.append(['p', pubkey])
 
-
     def add_event_ref(self, event_id:str):
         """ Adds a reference to an event_id as an 'e' tag """
         self.tags.append(['e', event_id])
 
-
     def verify(self) -> bool:
-        pub_key = PublicKey(bytes.fromhex("02" + self.public_key), True)  # add 02 for schnorr (bip340)
-        return pub_key.schnorr_verify(bytes.fromhex(self.id), bytes.fromhex(self.signature), None, raw=True)
+        pub_key = PublicKey(bytes.fromhex("02" + self.public_key), True) # add 02 for schnorr (bip340)
+        event_id = Event.compute_id(self.public_key, self.created_at, self.kind, self.tags, self.content)
+        return pub_key.schnorr_verify(bytes.fromhex(event_id), bytes.fromhex(self.signature), None, raw=True)
 
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "pubkey": self.public_key,
+            "created_at": self.created_at,
+            "kind": self.kind,
+            "tags": self.tags,
+            "content": self.content,
+            "sig": self.signature
+        }
 
-    def to_message(self) -> str:
-        return json.dumps(
-            [
-                ClientMessageType.EVENT,
-                {
-                    "id": self.id,
-                    "pubkey": self.public_key,
-                    "created_at": self.created_at,
-                    "kind": self.kind,
-                    "tags": self.tags,
-                    "content": self.content,
-                    "sig": self.signature
-                }
-            ]
+    @classmethod
+    def from_dict(cls, msg: dict) -> 'Event':
+        return Event(
+            content=msg['content'],
+            public_key=msg['pubkey'],
+            created_at=msg['created_at'],
+            kind=msg['kind'],
+            tags=msg['tags'],
+            signature=msg['sig'],
         )
 
-
+    def to_message(self) -> str:
+        return json.dumps([
+            ClientMessageType.EVENT,
+            self.to_dict()
+        ])
 
 @dataclass
 class EncryptedDirectMessage(Event):
@@ -96,9 +102,8 @@ class EncryptedDirectMessage(Event):
     cleartext_content: str = None
     reference_event_id: str = None
 
-
     def __post_init__(self):
-        if self.content is not None:
+        if self.content:
             self.cleartext_content = self.content
             self.content = None
 
@@ -112,9 +117,8 @@ class EncryptedDirectMessage(Event):
         self.add_pubkey_ref(self.recipient_pubkey)
 
         # Optionally specify a reference event (DM) this is a reply to
-        if self.reference_event_id is not None:
+        if self.reference_event_id:
             self.add_event_ref(self.reference_event_id)
-
 
     @property
     def id(self) -> str:

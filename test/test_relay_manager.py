@@ -11,7 +11,7 @@ def test_only_relay_valid_events():
         public_key=pk.public_key.hex(),
         content="Hello, world!",
     )
-    
+
     relay_manager = RelayManager()
 
     # Deliberately forget to sign the Event

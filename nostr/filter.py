@@ -16,17 +16,17 @@ class Filter:
     added. For example:
         # arbitrary tag
         filter.add_arbitrary_tag('t', [hashtags])
-    
+
         # promoted to explicit support
         Filter(hashtag_refs=[hashtags])
     """
     def __init__(
-            self, 
-            event_ids: List[str] = None, 
-            kinds: List[EventKind] = None, 
-            authors: List[str] = None, 
-            since: int = None, 
-            until: int = None, 
+            self,
+            event_ids: List[str] = None,
+            kinds: List[EventKind] = None,
+            authors: List[str] = None,
+            since: int = None,
+            until: int = None,
             event_refs: List[str] = None,       # the "#e" attr; list of event ids referenced in an "e" tag
             pubkey_refs: List[str] = None,      # The "#p" attr; list of pubkeys referenced in a "p" tag
             limit: int = None) -> None:
@@ -48,26 +48,27 @@ class Filter:
 
     def add_arbitrary_tag(self, tag: str, values: list):
         """
-            Filter on any arbitrary tag with explicit handling for NIP-01 and NIP-12
-            single-letter tags.
+        Filter on any arbitrary tag with explicit handling for NIP-01 and NIP-12
+        single-letter tags.
         """
-         # NIP-01 'e' and 'p' tags and any NIP-12 single-letter tags must be prefixed with "#"
+        # NIP-01 'e' and 'p' tags and
+        # any NIP-12 single-letter tags must be prefixed with "#"
         tag_key = tag if len(tag) > 1 else f"#{tag}"
         self.tags[tag_key] = values
 
 
     def matches(self, event: Event) -> bool:
-        if self.event_ids is not None and event.id not in self.event_ids:
+        if self.event_ids and event.id not in self.event_ids:
             return False
-        if self.kinds is not None and event.kind not in self.kinds:
+        if self.kinds and event.kind not in self.kinds:
             return False
-        if self.authors is not None and event.public_key not in self.authors:
+        if self.authors and event.public_key not in self.authors:
             return False
-        if self.since is not None and event.created_at < self.since:
+        if self.since and event.created_at < self.since:
             return False
-        if self.until is not None and event.created_at > self.until:
+        if self.until and event.created_at > self.until:
             return False
-        if (self.event_refs is not None or self.pubkey_refs is not None) and len(event.tags) == 0:
+        if (self.event_refs or self.pubkey_refs) and len(event.tags) == 0:
             return False
 
         if self.tags:
@@ -79,9 +80,9 @@ class Filter:
                 if f_tag not in e_tag_identifiers:
                     # Event is missing a tag type that we're looking for
                     return False
-                
-                # Multiple values within f_tag_values are treated as OR search; an Event
-                # needs to match only one.
+
+                # Multiple values within f_tag_values are treated as OR search;
+                # an Event needs to match only one.
                 # Note: an Event could have multiple entries of the same tag type
                 # (e.g. a reply to multiple people) so we have to check all of them.
                 match_found = False
@@ -97,23 +98,22 @@ class Filter:
 
     def to_json_object(self) -> dict:
         res = {}
-        if self.event_ids is not None:
+        if self.event_ids:
             res["ids"] = self.event_ids
-        if self.kinds is not None:   
+        if self.kinds:
             res["kinds"] = self.kinds
-        if self.authors is not None:
+        if self.authors:
             res["authors"] = self.authors
-        if self.since is not None:
+        if self.since:
             res["since"] = self.since
-        if self.until is not None:
+        if self.until:
             res["until"] = self.until
-        if self.limit is not None:
+        if self.limit:
             res["limit"] = self.limit
         if self.tags:
             res.update(self.tags)
 
         return res
-
 
 
 class Filters(UserList):

@@ -1,4 +1,4 @@
-# Testing python-nostr
+# Testing nostrcli
 
 ## Set up the test environment
 

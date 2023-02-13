@@ -1,13 +1,11 @@
 from nostr.event import Event, EncryptedDirectMessage
 from nostr.key import PrivateKey
 
-
 def test_eq_true():
     """ __eq__ should return True when PrivateKeys are equal """
     pk1 = PrivateKey()
     pk2 = PrivateKey(pk1.raw_secret)
     assert pk1 == pk2
-
 
 def test_eq_false():
     """ __eq__ should return False when PrivateKeys are not equal """
@@ -16,7 +14,6 @@ def test_eq_false():
     assert pk1.raw_secret != pk2.raw_secret
     assert pk1 != pk2
 
-
 def test_from_nsec():
     """ PrivateKey.from_nsec should yield the source's raw_secret """
     pk1 = PrivateKey()
@@ -24,19 +21,17 @@ def test_from_nsec():
     assert pk1.raw_secret == pk2.raw_secret
 
 
-
 class TestEvent:
     def setup_class(self):
         self.sender_pk = PrivateKey()
         self.sender_pubkey = self.sender_pk.public_key.hex()
-    
+
 
     def test_sign_event_is_valid(self):
         """ sign should create a signature that can be verified against Event.id """
         event = Event(content="Hello, world!")
         self.sender_pk.sign_event(event)
         assert event.verify()
-
 
     def test_sign_event_adds_pubkey(self):
         """ sign should add the sender's pubkey if not already specified """
@@ -51,14 +46,12 @@ class TestEvent:
         assert event.public_key == self.sender_pubkey
 
 
-
 class TestEncryptedDirectMessage:
     def setup_class(self):
         self.sender_pk = PrivateKey()
         self.sender_pubkey = self.sender_pk.public_key.hex()
         self.recipient_pk = PrivateKey()
         self.recipient_pubkey = self.recipient_pk.public_key.hex()
-
 
     def test_encrypt_dm(self):
         """ Should encrypt a DM and populate its `content` field with ciphertext that either party can decrypt """
@@ -83,7 +76,6 @@ class TestEncryptedDirectMessage:
         # Recipient should be able to decrypt by referencing the sender's pubkey
         decrypted_message = self.recipient_pk.decrypt_message(encoded_message=dm.content, public_key_hex=self.sender_pubkey)
         assert decrypted_message == message
-
 
     def test_sign_encrypts_dm(self):
         """ `sign` should encrypt a DM that hasn't been encrypted yet """
