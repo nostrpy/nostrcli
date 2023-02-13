@@ -10,7 +10,7 @@ authors = [
 description = "Python CLI for Nostr"
 urls = { Homepage = "https://github.com/nostrpy/nostrcli" }
 readme = "README.md"
-requires-python = ">3.7.0"
+requires-python = ">=3.8.0"
 dependencies = [
     "cffi>=1.15.0",
     "cryptography>=38.0.4",
