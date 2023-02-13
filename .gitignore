@@ -4,3 +4,4 @@ nostrpy.egg-info/
 dist/
 nostr/_version.py
 .DS_Store
+coverage.xml
