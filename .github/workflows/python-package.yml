@@ -8,7 +8,9 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11"]
+        # secp256k1 installation issue on python 3.11
+        # pip install secp256k1
+        python-version: ["3.8", "3.9", "3.10"]
 
     steps:
       - uses: actions/checkout@v3
@@ -19,7 +21,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install flake8 pytest
+          pip install flake8 pytest wheel
           pip install -e .
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           if [ -f test/requirements.txt ]; then pip install -r test/requirements.txt; fi
