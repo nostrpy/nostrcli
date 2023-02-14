@@ -6,6 +6,8 @@ from nostr.key import PrivateKey, PublicKey
 @click.group()
 def cli():
     """Command related to key(s)."""
+
+
 @cli.command()
 def create():
     """Creates a private and public key."""
@@ -16,7 +18,7 @@ def create():
 
 
 @cli.command()
-@click.option('-p', '--pub-key', 'npub', required=True, type=str)
+@click.option("-p", "--pub-key", "npub", required=True, type=str)
 def npub_to_hex(npub: str):
     """Converts npub key to hex."""
     public_key = PublicKey.from_npub(npub)

@@ -1,5 +1,5 @@
-import base64
 import secrets
+from base64 import b64decode, b64encode
 from hashlib import sha256
 from typing import Optional, cast
 
@@ -80,7 +80,7 @@ class PrivateKey:
         encryptor = cipher.encryptor()
         encrypted_message = encryptor.update(padded_data) + encryptor.finalize()
 
-        return f"{base64.b64encode(encrypted_message).decode()}?iv={base64.b64encode(iv).decode()}"
+        return f"{b64encode(encrypted_message).decode()}?iv={b64encode(iv).decode()}"
 
     def encrypt_dm(self, dm: EncryptedDirectMessage) -> None:
         dm.content = self.encrypt_message(
@@ -88,14 +88,14 @@ class PrivateKey:
         )
 
     def decrypt_message(self, encoded_message: str, public_key_hex: str) -> str:
-        encoded_data = encoded_message.split('?iv=')
+        encoded_data = encoded_message.split("?iv=")
         encoded_content, encoded_iv = encoded_data[0], encoded_data[1]
 
-        iv = base64.b64decode(encoded_iv)
+        iv = b64decode(encoded_iv)
         cipher = Cipher(
             algorithms.AES(self.compute_shared_secret(public_key_hex)), modes.CBC(iv)
         )
-        encrypted_content = base64.b64decode(encoded_content)
+        encrypted_content = b64decode(encoded_content)
 
         decryptor = cipher.decryptor()
         decrypted_message = decryptor.update(encrypted_content) + decryptor.finalize()

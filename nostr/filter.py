@@ -48,9 +48,9 @@ class Filter:
 
         self.tags = {}
         if self.event_refs:
-            self.add_arbitrary_tag('e', self.event_refs)
+            self.add_arbitrary_tag("e", self.event_refs)
         if self.pubkey_refs:
-            self.add_arbitrary_tag('p', self.pubkey_refs)
+            self.add_arbitrary_tag("p", self.pubkey_refs)
 
     def add_arbitrary_tag(self, tag: str, values: list):
         """Filter on any arbitrary tag with explicit handling for NIP-01 and NIP-12
@@ -119,7 +119,7 @@ class Filter:
 
 
 class Filters(UserList):
-    def __init__(self, initlist: "list[Filter]" = []) -> None:
+    def __init__(self, initlist: "list[Filter]" = None) -> None:
         super().__init__(initlist)
         self.data: "list[Filter]"
 

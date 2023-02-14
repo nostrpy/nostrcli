@@ -17,7 +17,7 @@ from .message_pool import MessagePool
 from .message_type import RelayMessageType
 from .subscription import Subscription
 
-logger = logging.getLogger('websocket')
+logger = logging.getLogger("websocket")
 logger.setLevel(logging.INFO)
 logger.addHandler(logging.StreamHandler())
 
@@ -29,7 +29,7 @@ class RelayPolicy:
     should_read: bool = True
     should_write: bool = True
 
-    def to_json_object(self) -> 'dict[str, bool]':
+    def to_json_object(self) -> "dict[str, bool]":
         return {"read": self.should_read, "write": self.should_write}
 
 
@@ -46,7 +46,7 @@ class Relay:
         url: str,
         policy: RelayPolicy,
         message_pool: MessagePool,
-        subscription: 'dict[str, Subscription]' = None,
+        subscription: "dict[str, Subscription]" = None,
     ) -> None:
         self.url = url
         self.policy = policy
@@ -140,7 +140,7 @@ class Relay:
 
     def _is_valid_message(self, message: str) -> bool:
         message = message.strip("\n")
-        if not message or message[0] != '[' or message[-1] != ']':
+        if not message or message[0] != "[" or message[-1] != "]":
             return False
 
         message_json = json.loads(message)

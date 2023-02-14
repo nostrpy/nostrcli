@@ -30,10 +30,11 @@ def count_leading_zero_bits(hex_str: str) -> int:
 
 
 def mine_event(
-    content: str, difficulty: int, public_key: str, kind: int, tags: list = []
+    content: str, difficulty: int, public_key: str, kind: int, tags: list = None
 ) -> Event:
     all_tags = [["nonce", "1", str(difficulty)]]
-    all_tags.extend(tags)
+    if tags:
+        all_tags.extend(tags)
 
     created_at = int(time.time())
     event_id = Event.compute_id(public_key, created_at, kind, all_tags, content)

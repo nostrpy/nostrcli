@@ -14,10 +14,12 @@ from nostr.relay_manager import RelayManager
 @click.group()
 def cli():
     """Command related to message(s)."""
+
+
 @cli.command()
-@click.option('-p', '--pub-key', 'npub', required=True, type=str)
-@click.option('-l', '--limit', 'limit', type=int, default=10)
-@click.option('--sleep', 'sleep', type=int, default=2)
+@click.option("-p", "--pub-key", "npub", required=True, type=str)
+@click.option("-l", "--limit", "limit", type=int, default=10)
+@click.option("--sleep", "sleep", type=int, default=2)
 def receive(npub: str, limit: int = 10, sleep: int = 2):
     """Receives messages from npub address."""
     click.echo(f"npub: {npub}")
@@ -48,9 +50,9 @@ def receive(npub: str, limit: int = 10, sleep: int = 2):
 
 
 @cli.command()
-@click.option('-s', '--sec-key', 'nsec', required=True, type=str)
-@click.option('-m', '--message', 'message', type=str)
-@click.option('--sleep', 'sleep', type=int, default=2)
+@click.option("-s", "--sec-key", "nsec", required=True, type=str)
+@click.option("-m", "--message", "message", type=str)
+@click.option("--sleep", "sleep", type=int, default=2)
 def publish(nsec: str, message: str, sleep: int = 2):
     """Sends a message."""
     private_key = PrivateKey.from_nsec(nsec)
@@ -68,10 +70,10 @@ def publish(nsec: str, message: str, sleep: int = 2):
 
 
 @cli.command()
-@click.option('-s', '--sec-key', 'nsec', required=True, type=str)
-@click.option('-m', '--message', 'message', type=str)
-@click.option('-p', '--pub-key', 'receiver_npub', required=True, type=str)
-@click.option('--sleep', 'sleep', type=int, default=2)
+@click.option("-s", "--sec-key", "nsec", required=True, type=str)
+@click.option("-m", "--message", "message", type=str)
+@click.option("-p", "--pub-key", "receiver_npub", required=True, type=str)
+@click.option("--sleep", "sleep", type=int, default=2)
 def send(nsec: str, message: str, receiver_npub: str, sleep: int = 2):
     """Sends a encryped direct message."""
     private_key = PrivateKey.from_nsec(nsec)

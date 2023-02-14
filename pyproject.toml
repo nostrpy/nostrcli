@@ -39,3 +39,6 @@ test = [
 
 [project.scripts]
 nostr = "nostr.cli:cli"
+
+[tool.black]
+line-length = 88

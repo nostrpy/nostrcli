@@ -29,7 +29,6 @@ class RelayManager:
         ssl_options: dict = None,
         proxy_config: RelayProxyConnectionConfig = None,
     ):
-
         relay = Relay(url, policy, self.message_pool)
 
         with self.lock:
@@ -83,7 +82,8 @@ class RelayManager:
                 relay = self.relays[url]
                 if not relay.policy.should_read:
                     raise RelayException(
-                        f"Could not send request: {relay.url} is not configured to read from"
+                        f"Could not send request: {relay.url} \
+                        is not configured to read from"
                     )
                 relay.add_subscription(id, filters)
                 request = Request(id, filters)
@@ -127,7 +127,8 @@ class RelayManager:
 
         if not event.verify():
             raise RelayException(
-                f"Could not publish {event.id}: failed to verify signature {event.signature}"
+                f"Could not publish {event.id}: \
+                failed to verify signature {event.signature}"
             )
 
         with self.lock:

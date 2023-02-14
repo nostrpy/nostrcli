@@ -20,11 +20,11 @@ class TestFilter:
                 content="Nice to see you here, pk1!",
                 tags=[
                     [
-                        'e',
+                        "e",
                         self.pk1_thread[0].id,
                     ],  # Replies reference which note they're directly responding to
                     [
-                        'p',
+                        "p",
                         self.pk1.public_key.hex(),
                     ],  # Replies reference who they're responding to
                 ],
@@ -36,13 +36,13 @@ class TestFilter:
                 public_key=self.pk1.public_key.hex(),
                 content="Thanks! Glad you're here, too, pk2!",
                 tags=[
-                    ['e', self.pk1_thread[0].id],  # Threads reference the original note
+                    ["e", self.pk1_thread[0].id],  # Threads reference the original note
                     [
-                        'e',
+                        "e",
                         self.pk1_thread[-1].id,
                     ],  # Replies reference which note they're directly responding to
                     [
-                        'p',
+                        "p",
                         self.pk2.public_key.hex(),
                     ],  # Replies reference who they're responding to
                 ],
@@ -59,7 +59,7 @@ class TestFilter:
             Event(
                 public_key=self.pk2.public_key.hex(),
                 content="So... I guess no one's following me.",
-                tags=[['e', self.pk2_thread[0].id]],
+                tags=[["e", self.pk2_thread[0].id]],
             )
         )
 
@@ -69,13 +69,13 @@ class TestFilter:
             Event(
                 public_key=self.pk1.public_key.hex(),
                 content="Hey pk2, here's a secret",
-                tags=[['p', self.pk2.public_key.hex()]],
+                tags=[["p", self.pk2.public_key.hex()]],
                 kind=EventKind.ENCRYPTED_DIRECT_MESSAGE,
             ),
             Event(
                 public_key=self.pk2.public_key.hex(),
                 content="Thanks! I'll keep it secure.",
-                tags=[['p', self.pk1.public_key.hex()]],
+                tags=[["p", self.pk1.public_key.hex()]],
                 kind=EventKind.ENCRYPTED_DIRECT_MESSAGE,
             ),
         ]
@@ -187,7 +187,7 @@ class TestFilter:
     def test_match_by_arbitrary_single_letter_tag(self):
         """Should match NIP-12 arbitrary single-letter tags."""
         filter = Filter()
-        filter.add_arbitrary_tag('x', ["oranges"])
+        filter.add_arbitrary_tag("x", ["oranges"])
 
         # None of our Events match
         for event in self.pk1_thread + self.pk2_thread + self.pk1_pk2_dms:
@@ -197,7 +197,7 @@ class TestFilter:
         event = Event(
             public_key=self.pk1.public_key.hex(),
             content="Additional event to test with",
-            tags=[['x', "bananas"]],
+            tags=[["x", "bananas"]],
         )
         assert filter.matches(event) is False
 
@@ -205,21 +205,21 @@ class TestFilter:
         event = Event(
             public_key=self.pk1.public_key.hex(),
             content="Additional event to test with",
-            tags=[['x', "oranges"]],
+            tags=[["x", "oranges"]],
         )
         assert filter.matches(event)
 
         # Filter shouldn't care if there are other extraneous values
-        event.tags.append(['x', "pizza"])
+        event.tags.append(["x", "pizza"])
         assert filter.matches(event)
 
-        event.tags.append(['y', "honey badger"])
+        event.tags.append(["y", "honey badger"])
         assert filter.matches(event)
 
     def test_match_by_arbitrary_multi_letter_tag(self):
         """Should match any arbitrary multi-letter tag."""
         filter = Filter()
-        filter.add_arbitrary_tag('favorites', ["bitcoin"])
+        filter.add_arbitrary_tag("favorites", ["bitcoin"])
 
         # None of our Events match
         for event in self.pk1_thread + self.pk2_thread + self.pk1_pk2_dms:
@@ -229,7 +229,7 @@ class TestFilter:
         event = Event(
             public_key=self.pk1.public_key.hex(),
             content="Additional event to test with",
-            tags=[['favorites', "shitcoin"]],
+            tags=[["favorites", "shitcoin"]],
         )
         assert filter.matches(event) is False
 
@@ -237,15 +237,15 @@ class TestFilter:
         event = Event(
             public_key=self.pk1.public_key.hex(),
             content="Additional event to test with",
-            tags=[['favorites', "bitcoin"]],
+            tags=[["favorites", "bitcoin"]],
         )
         assert filter.matches(event)
 
         # Filter shouldn't care if there are other extraneous values
-        event.tags.append(['favorites', "sats"])
+        event.tags.append(["favorites", "sats"])
         assert filter.matches(event)
 
-        event.tags.append(['foo', "bar"])
+        event.tags.append(["foo", "bar"])
         assert filter.matches(event)
 
     def test_match_by_delegation_tag(self):
@@ -256,9 +256,10 @@ class TestFilter:
         """
         filter = Filter()
 
-        # Search just for the delegator's pubkey (only aspect of delegation search that is supported this way)
+        # Search just for the delegator's pubkey
+        # (only aspect of delegation search that is supported this way)
         filter.add_arbitrary_tag(
-            'delegation',
+            "delegation",
             ["8e0d3d3eb2881ec137a11debe736a9086715a8c8beeeda615780064d68bc25dd"],
         )
 
@@ -272,10 +273,10 @@ class TestFilter:
             content="Additional event to test with",
             tags=[
                 [
-                    'delegation',
+                    "delegation",
                     "some_other_delegators_pubkey",
                     "kind=1&created_at<1675721813",
-                    "cbc49c65fe04a3181d72fb5a9f1c627e329d5f45d300a2dfed1c3e788b7834dad48a6d27d8e244af39c77381334ede97d4fd15abe80f35fda695fd9bd732aa1e",
+                    "cbc49c65fe04a3181d72fb5a9f1c627e329d5f45d300a2dfed1c3e788b7834dad48a6d27d8e244af39c77381334ede97d4fd15abe80f35fda695fd9bd732aa1e",  # noqa: E501
                 ]
             ],
         )
@@ -287,20 +288,20 @@ class TestFilter:
             content="Additional event to test with",
             tags=[
                 [
-                    'delegation',
+                    "delegation",
                     "8e0d3d3eb2881ec137a11debe736a9086715a8c8beeeda615780064d68bc25dd",
                     "kind=1&created_at<1675721813",
-                    "cbc49c65fe04a3181d72fb5a9f1c627e329d5f45d300a2dfed1c3e788b7834dad48a6d27d8e244af39c77381334ede97d4fd15abe80f35fda695fd9bd732aa1e",
+                    "cbc49c65fe04a3181d72fb5a9f1c627e329d5f45d300a2dfed1c3e788b7834dad48a6d27d8e244af39c77381334ede97d4fd15abe80f35fda695fd9bd732aa1e",  # noqa: E501
                 ]
             ],
         )
         assert filter.matches(event)
 
         # Filter shouldn't care if there are other extraneous values
-        event.tags.append(['favorites', "sats"])
+        event.tags.append(["favorites", "sats"])
         assert filter.matches(event)
 
-        event.tags.append(['foo', "bar"])
+        event.tags.append(["foo", "bar"])
         assert filter.matches(event)
 
     def test_match_by_authors_and_kinds(self):
@@ -383,14 +384,14 @@ class TestFilter:
     def test_arbitrary_single_letter_json(self):
         """Should prefix NIP-12 arbitrary single-letter tags with "#" in json."""
         filter = Filter()
-        filter.add_arbitrary_tag('x', ["oranges"])
+        filter.add_arbitrary_tag("x", ["oranges"])
         assert "#x" in filter.to_json_object().keys()
         assert "x" not in filter.to_json_object().keys()
 
     def test_arbitrary_multi_letter_json(self):
         """Should include arbitrary multi-letter tags as-is in json."""
         filter = Filter()
-        filter.add_arbitrary_tag('foo', ["bar"])
+        filter.add_arbitrary_tag("foo", ["bar"])
         assert "foo" in filter.to_json_object().keys()
 
 

@@ -14,9 +14,9 @@ class TestEvent(unittest.TestCase):
         Ensure created_at default value reflects the time at Event object instantiation
         see: https://github.com/jeffthibault/python-nostr/issues/23
         """
-        event1 = Event(content='test event')
+        event1 = Event(content="test event")
         time.sleep(1.5)
-        event2 = Event(content='test event')
+        event2 = Event(content="test event")
         assert event1.created_at < event2.created_at
 
     def test_content_only_instantiation(self):
@@ -42,14 +42,14 @@ class TestEvent(unittest.TestCase):
         some_event_id = "some_event_id"
         event = Event(content="Adding an 'e' tag")
         event.add_event_ref(some_event_id)
-        assert ['e', some_event_id] in event.tags
+        assert ["e", some_event_id] in event.tags
 
     def test_add_pubkey_ref(self):
         """Should add a 'p' tag for each pubkey_ref added."""
         some_pubkey = "some_pubkey"
         event = Event(content="Adding a 'p' tag")
         event.add_pubkey_ref(some_pubkey)
-        assert ['p', some_pubkey] in event.tags
+        assert ["p", some_pubkey] in event.tags
 
     def test_dict_roundtrip(self):
         """Conversion to dict and back result in same object."""
@@ -94,7 +94,7 @@ class TestEncryptedDirectMessage:
         dm = EncryptedDirectMessage(
             cleartext_content="Secret message!", recipient_pubkey=self.recipient_pubkey
         )
-        assert ['p', self.recipient_pubkey] in dm.tags
+        assert ["p", self.recipient_pubkey] in dm.tags
 
     def test_unencrypted_dm_has_undefined_id(self):
         """Should raise Exception if `id` is requested before DM is encrypted."""

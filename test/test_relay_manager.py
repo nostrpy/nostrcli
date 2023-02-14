@@ -21,7 +21,7 @@ def test_only_relay_valid_events():
     assert "must be signed" in str(e)
 
     # Attempt to relay with a nonsense signature
-    event.signature = '0' * 32
+    event.signature = "0" * 32
     with pytest.raises(RelayException) as e:
         relay_manager.publish_event(event)
     assert "failed to verify" in str(e)

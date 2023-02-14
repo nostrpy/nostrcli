@@ -42,7 +42,7 @@ class Event:
         public_key: str, created_at: int, kind: int, tags: List[List[str]], content: str
     ) -> bytes:
         data = [0, public_key, created_at, kind, tags, content]
-        data_str = json.dumps(data, separators=(',', ':'), ensure_ascii=False)
+        data_str = json.dumps(data, separators=(",", ":"), ensure_ascii=False)
         return data_str.encode()
 
     @staticmethod
@@ -67,11 +67,11 @@ class Event:
 
     def add_pubkey_ref(self, pubkey: str):
         """Adds a reference to a pubkey as a 'p' tag."""
-        self.tags.append(['p', pubkey])
+        self.tags.append(["p", pubkey])
 
     def add_event_ref(self, event_id: str):
         """Adds a reference to an event_id as an 'e' tag."""
-        self.tags.append(['e', event_id])
+        self.tags.append(["e", event_id])
 
     def verify(self) -> bool:
         pub_key = PublicKey(
@@ -96,14 +96,14 @@ class Event:
         }
 
     @classmethod
-    def from_dict(cls, msg: dict) -> 'Event':
+    def from_dict(cls, msg: dict) -> "Event":
         return Event(
-            content=msg['content'],
-            public_key=msg['pubkey'],
-            created_at=msg['created_at'],
-            kind=msg['kind'],
-            tags=msg['tags'],
-            signature=msg['sig'],
+            content=msg["content"],
+            public_key=msg["pubkey"],
+            created_at=msg["created_at"],
+            kind=msg["kind"],
+            tags=msg["tags"],
+            signature=msg["sig"],
         )
 
     def to_message(self) -> str:
@@ -138,6 +138,7 @@ class EncryptedDirectMessage(Event):
     def id(self) -> str:
         if self.content is None:
             raise Exception(
-                "EncryptedDirectMessage `id` is undefined until its message is encrypted and stored in the `content` field"
+                "EncryptedDirectMessage `id` is undefined \
+                until its message is encrypted and stored in the `content` field"
             )
         return super().id
