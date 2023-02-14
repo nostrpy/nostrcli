@@ -1,6 +1,5 @@
 import json
 import ssl
-import time
 import threading
 from dataclasses import dataclass
 from threading import Lock
@@ -8,7 +7,6 @@ from threading import Lock
 from .event import Event
 from .filter import Filters
 from .message_pool import MessagePool
-from .message_type import ClientMessageType
 from .relay import Relay, RelayPolicy, RelayProxyConnectionConfig
 from .request import Request
 
@@ -25,12 +23,12 @@ class RelayManager:
         self.lock: Lock = Lock()
 
     def add_relay(
-            self,
-            url: str,
-            policy: RelayPolicy = RelayPolicy(),
-            ssl_options: dict = None,
-            proxy_config: RelayProxyConnectionConfig = None
-        ):
+        self,
+        url: str,
+        policy: RelayPolicy = RelayPolicy(),
+        ssl_options: dict = None,
+        proxy_config: RelayProxyConnectionConfig = None,
+    ):
 
         relay = Relay(url, policy, self.message_pool)
 
@@ -57,12 +55,9 @@ class RelayManager:
         # NOTE: This disables ssl certificate verification
         self.open_connections({"cert_reqs": ssl.CERT_NONE})
 
-    def open_connections(self, ssl_options: dict=None):
+    def open_connections(self, ssl_options: dict = None):
         for relay in self.relays.values():
-            threading.Thread(
-                target=relay.connect,
-                name=f"{relay.url}-thread"
-            ).start()
+            threading.Thread(target=relay.connect, name=f"{relay.url}-thread").start()
 
     def __exit__(self, type, value, traceback):
         self.close_connections()
@@ -81,7 +76,6 @@ class RelayManager:
         for relay in self.relays.values():
             out.append([relay.url, relay.active])
         return out
-
 
     def add_subscription_on_relay(self, url: str, id: str, filters: Filters):
         with self.lock:
@@ -127,7 +121,7 @@ class RelayManager:
                 relay.close()
 
     def publish_event(self, event: Event):
-        """ Verifies that the Event is publishable before submitting it to relays """
+        """Verifies that the Event is publishable before submitting it to relays."""
         if event.signature is None:
             raise RelayException(f"Could not publish {event.id}: must be signed")
 

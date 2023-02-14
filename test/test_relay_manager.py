@@ -1,11 +1,12 @@
 import pytest
+
 from nostr.event import Event
 from nostr.key import PrivateKey
-from nostr.relay_manager import RelayManager, RelayException
+from nostr.relay_manager import RelayException, RelayManager
 
 
 def test_only_relay_valid_events():
-    """ publish_event raise a RelayException if an Event fails verification """
+    """Publish_event raise a RelayException if an Event fails verification."""
     pk = PrivateKey()
     event = Event(
         public_key=pk.public_key.hex(),

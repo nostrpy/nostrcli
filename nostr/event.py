@@ -1,10 +1,11 @@
-import time
 import json
+import time
 from dataclasses import dataclass, field
 from enum import IntEnum
-from typing import List, Optional
-from secp256k1 import PrivateKey, PublicKey
 from hashlib import sha256
+from typing import List, Optional
+
+from secp256k1 import PrivateKey, PublicKey
 
 from .message_type import ClientMessageType
 
@@ -18,6 +19,7 @@ class EventKind(IntEnum):
     DELETE = 5
     BOOST = 6
     REACTION = 7
+
 
 @dataclass
 class Event:
@@ -36,37 +38,51 @@ class Event:
             self.created_at = int(time.time())
 
     @staticmethod
-    def serialize(public_key: str, created_at: int, kind: int, tags: List[List[str]], content: str) -> bytes:
+    def serialize(
+        public_key: str, created_at: int, kind: int, tags: List[List[str]], content: str
+    ) -> bytes:
         data = [0, public_key, created_at, kind, tags, content]
         data_str = json.dumps(data, separators=(',', ':'), ensure_ascii=False)
         return data_str.encode()
 
     @staticmethod
-    def compute_id(public_key: str, created_at: int, kind: int, tags: List[List[str]], content: str):
-        return sha256(Event.serialize(public_key, created_at, kind, tags, content)).hexdigest()
+    def compute_id(
+        public_key: str, created_at: int, kind: int, tags: List[List[str]], content: str
+    ):
+        return sha256(
+            Event.serialize(public_key, created_at, kind, tags, content)
+        ).hexdigest()
 
     @property
     def id(self) -> str:
         # Always recompute the id to reflect the up-to-date state of the Event
-        return Event.compute_id(self.public_key, self.created_at, self.kind, self.tags, self.content)
+        return Event.compute_id(
+            self.public_key, self.created_at, self.kind, self.tags, self.content
+        )
 
     def sign(self, private_key_hex: str) -> None:
         sk = PrivateKey(bytes.fromhex(private_key_hex))
         sig = sk.schnorr_sign(bytes.fromhex(self.id), None, raw=True)
         self.signature = sig.hex()
 
-    def add_pubkey_ref(self, pubkey:str):
-        """ Adds a reference to a pubkey as a 'p' tag """
+    def add_pubkey_ref(self, pubkey: str):
+        """Adds a reference to a pubkey as a 'p' tag."""
         self.tags.append(['p', pubkey])
 
-    def add_event_ref(self, event_id:str):
-        """ Adds a reference to an event_id as an 'e' tag """
+    def add_event_ref(self, event_id: str):
+        """Adds a reference to an event_id as an 'e' tag."""
         self.tags.append(['e', event_id])
 
     def verify(self) -> bool:
-        pub_key = PublicKey(bytes.fromhex("02" + self.public_key), True) # add 02 for schnorr (bip340)
-        event_id = Event.compute_id(self.public_key, self.created_at, self.kind, self.tags, self.content)
-        return pub_key.schnorr_verify(bytes.fromhex(event_id), bytes.fromhex(self.signature), None, raw=True)
+        pub_key = PublicKey(
+            bytes.fromhex("02" + self.public_key), True
+        )  # add 02 for schnorr (bip340)
+        event_id = Event.compute_id(
+            self.public_key, self.created_at, self.kind, self.tags, self.content
+        )
+        return pub_key.schnorr_verify(
+            bytes.fromhex(event_id), bytes.fromhex(self.signature), None, raw=True
+        )
 
     def to_dict(self) -> dict:
         return {
@@ -76,7 +92,7 @@ class Event:
             "kind": self.kind,
             "tags": self.tags,
             "content": self.content,
-            "sig": self.signature
+            "sig": self.signature,
         }
 
     @classmethod
@@ -91,10 +107,8 @@ class Event:
         )
 
     def to_message(self) -> str:
-        return json.dumps([
-            ClientMessageType.EVENT,
-            self.to_dict()
-        ])
+        return json.dumps([ClientMessageType.EVENT, self.to_dict()])
+
 
 @dataclass
 class EncryptedDirectMessage(Event):
@@ -123,5 +137,7 @@ class EncryptedDirectMessage(Event):
     @property
     def id(self) -> str:
         if self.content is None:
-            raise Exception("EncryptedDirectMessage `id` is undefined until its message is encrypted and stored in the `content` field")
+            raise Exception(
+                "EncryptedDirectMessage `id` is undefined until its message is encrypted and stored in the `content` field"
+            )
         return super().id

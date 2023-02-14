@@ -7,7 +7,7 @@ class Delegation:
     delegator_pubkey: str
     delegatee_pubkey: str
     event_kind: int
-    duration_secs: int = 30*24*60  # default to 30 days
+    duration_secs: int = 30 * 24 * 60  # default to 30 days
     signature: str = None  # set in PrivateKey.sign_delegation
 
     @property
@@ -23,7 +23,7 @@ class Delegation:
         return f"nostr:delegation:{self.delegatee_pubkey}:{self.conditions}"
 
     def get_tag(self) -> 'list[str]':
-        """ Called by Event """
+        """Called by Event."""
         return [
             "delegation",
             self.delegator_pubkey,

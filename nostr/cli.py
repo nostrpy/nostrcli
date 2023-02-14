@@ -1,14 +1,13 @@
+import os
 
 import click
-import os
 
 from nostr._version import __version__
 
-
 plugin_folder = os.path.join(os.path.dirname(__file__), 'commands')
 
-class CLI(click.MultiCommand):
 
+class CLI(click.MultiCommand):
     def list_commands(self, ctx):
         rv = []
         for filename in os.listdir(plugin_folder):
@@ -27,12 +26,10 @@ class CLI(click.MultiCommand):
             eval(code, ns, ns)
         return ns['cli']
 
+
 @click.version_option(__version__, '-v', '--version')
 @click.command(cls=CLI)
 def cli():
     """The CLI of nostr."""
-    pass
-
-
 if __name__ == '__main__':
     cli()

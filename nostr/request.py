@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from .filter import Filters
 from .message_type import ClientMessageType
 
+
 @dataclass
 class Request:
     subscription_id: str

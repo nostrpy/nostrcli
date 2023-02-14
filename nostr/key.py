@@ -1,15 +1,16 @@
-import secrets
 import base64
+import secrets
+from hashlib import sha256
+from typing import Optional, cast
+
 import secp256k1
 from cffi import FFI
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives import padding
-from hashlib import sha256
-from typing import cast, Optional
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
+from . import bech32
 from .delegation import Delegation
 from .event import EncryptedDirectMessage, Event, EventKind
-from . import bech32
 
 
 class PublicKey:
@@ -29,14 +30,14 @@ class PublicKey:
 
     @classmethod
     def from_npub(cls, npub: str):
-        """ Load a PublicKey from its bech32/npub form """
+        """Load a PublicKey from its bech32/npub form."""
         hrp, data, spec = bech32.bech32_decode(npub)
         raw_public_key = bech32.convertbits(data, 5, 8)[:-1]
         return cls(bytes(raw_public_key))
 
 
 class PrivateKey:
-    def __init__(self, raw_secret: Optional[bytes]=None) -> None:
+    def __init__(self, raw_secret: Optional[bytes] = None) -> None:
         if raw_secret:
             self.raw_secret = raw_secret
         else:
@@ -47,7 +48,7 @@ class PrivateKey:
 
     @classmethod
     def from_nsec(cls, nsec: str):
-        """ Load a PrivateKey from its bech32/nsec form """
+        """Load a PrivateKey from its bech32/nsec form."""
         hrp, data, spec = bech32.bech32_decode(nsec)
         raw_secret = bech32.convertbits(data, 5, 8)[:-1]
         return cls(bytes(raw_secret))
@@ -72,7 +73,9 @@ class PrivateKey:
         padded_data = padder.update(message.encode()) + padder.finalize()
 
         iv = secrets.token_bytes(16)
-        cipher = Cipher(algorithms.AES(self.compute_shared_secret(public_key_hex)), modes.CBC(iv))
+        cipher = Cipher(
+            algorithms.AES(self.compute_shared_secret(public_key_hex)), modes.CBC(iv)
+        )
 
         encryptor = cipher.encryptor()
         encrypted_message = encryptor.update(padded_data) + encryptor.finalize()
@@ -80,14 +83,18 @@ class PrivateKey:
         return f"{base64.b64encode(encrypted_message).decode()}?iv={base64.b64encode(iv).decode()}"
 
     def encrypt_dm(self, dm: EncryptedDirectMessage) -> None:
-        dm.content = self.encrypt_message(message=dm.cleartext_content, public_key_hex=dm.recipient_pubkey)
+        dm.content = self.encrypt_message(
+            message=dm.cleartext_content, public_key_hex=dm.recipient_pubkey
+        )
 
     def decrypt_message(self, encoded_message: str, public_key_hex: str) -> str:
         encoded_data = encoded_message.split('?iv=')
         encoded_content, encoded_iv = encoded_data[0], encoded_data[1]
 
         iv = base64.b64decode(encoded_iv)
-        cipher = Cipher(algorithms.AES(self.compute_shared_secret(public_key_hex)), modes.CBC(iv))
+        cipher = Cipher(
+            algorithms.AES(self.compute_shared_secret(public_key_hex)), modes.CBC(iv)
+        )
         encrypted_content = base64.b64decode(encoded_content)
 
         decryptor = cipher.decryptor()
@@ -112,21 +119,28 @@ class PrivateKey:
         event.signature = self.sign_message_hash(bytes.fromhex(event.id))
 
     def sign_delegation(self, delegation: Delegation) -> None:
-        delegation.signature = self.sign_message_hash(sha256(delegation.delegation_token.encode()).digest())
+        delegation.signature = self.sign_message_hash(
+            sha256(delegation.delegation_token.encode()).digest()
+        )
 
     def __eq__(self, other):
         return self.raw_secret == other.raw_secret
 
 
-def mine_vanity_key(prefix: Optional[str] = None, suffix: Optional[str] = None) -> PrivateKey:
+def mine_vanity_key(
+    prefix: Optional[str] = None, suffix: Optional[str] = None
+) -> PrivateKey:
     if prefix is None and suffix is None:
         raise ValueError("Expected at least one of 'prefix' or 'suffix' arguments")
 
     while True:
         sk = PrivateKey()
-        if prefix is not None and not sk.public_key.bech32()[5:5+len(prefix)] == prefix:
+        if (
+            prefix is not None
+            and not sk.public_key.bech32()[5 : 5 + len(prefix)] == prefix
+        ):
             continue
-        if suffix is not None and not sk.public_key.bech32()[-len(suffix):] == suffix:
+        if suffix is not None and not sk.public_key.bech32()[-len(suffix) :] == suffix:
             continue
         break
 
@@ -134,7 +148,11 @@ def mine_vanity_key(prefix: Optional[str] = None, suffix: Optional[str] = None) 
 
 
 ffi = FFI()
-@ffi.callback("int (unsigned char *, const unsigned char *, const unsigned char *, void *)")
+
+
+@ffi.callback(
+    "int (unsigned char *, const unsigned char *, const unsigned char *, void *)"
+)
 def copy_x(output, x32, y32, data):
     ffi.memmove(output, x32, 32)
     return 1

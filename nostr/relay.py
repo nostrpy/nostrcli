@@ -1,20 +1,22 @@
 import json
+import logging
 import time
 from dataclasses import dataclass
 from threading import Lock
 from typing import Optional
+
 from websocket import (
     WebSocketApp,
     WebSocketConnectionClosedException,
-    setdefaulttimeout
+    setdefaulttimeout,
 )
+
 from .event import Event
 from .filter import Filters
 from .message_pool import MessagePool
 from .message_type import RelayMessageType
 from .subscription import Subscription
 
-import logging
 logger = logging.getLogger('websocket')
 logger.setLevel(logging.INFO)
 logger.addHandler(logging.StreamHandler())
@@ -28,10 +30,7 @@ class RelayPolicy:
     should_write: bool = True
 
     def to_json_object(self) -> 'dict[str, bool]':
-        return {
-            "read": self.should_read,
-            "write": self.should_write
-        }
+        return {"read": self.should_read, "write": self.should_write}
 
 
 @dataclass
@@ -42,14 +41,13 @@ class RelayProxyConnectionConfig:
 
 
 class Relay:
-
     def __init__(
-            self,
-            url: str,
-            policy: RelayPolicy,
-            message_pool: MessagePool,
-            subscription: 'dict[str, Subscription]' = None
-        ) -> None:
+        self,
+        url: str,
+        policy: RelayPolicy,
+        message_pool: MessagePool,
+        subscription: 'dict[str, Subscription]' = None,
+    ) -> None:
         self.url = url
         self.policy = policy
         self.message_pool = message_pool
@@ -66,7 +64,7 @@ class Relay:
             on_error=self._on_error,
             on_close=self._on_close,
             on_ping=self._on_ping,
-            on_pong=self._on_pong
+            on_pong=self._on_pong,
         )
         self.active = False
 
@@ -79,7 +77,7 @@ class Relay:
             ping_interval=60,
             ping_timeout=10,
             ping_payload="2",
-            reconnect=30
+            reconnect=30,
         )
 
     def close(self):
@@ -90,7 +88,7 @@ class Relay:
             self.ws.send(message)
         except WebSocketConnectionClosedException:
             self.active = False
-            logger.exception("failed to send message to {}".format(self.url))
+            logger.exception(f"failed to send message to {self.url}")
 
     def add_subscription(self, id, filters: Filters):
         with self.lock:
@@ -112,7 +110,7 @@ class Relay:
             "subscriptions": [
                 subscription.to_json_object()
                 for subscription in self.subscriptions.values()
-            ]
+            ],
         }
 
     def _on_open(self, class_obj):
@@ -133,7 +131,6 @@ class Relay:
 
     def _on_error(self, class_obj, error):
         print(f"ERROR: {self.url}")
-        pass
 
     def _on_ping(self, class_obj, message):
         pass

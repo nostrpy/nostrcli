@@ -1,8 +1,9 @@
 import json
 from queue import Queue
 from threading import Lock
-from .message_type import RelayMessageType
+
 from .event import Event
+from .message_type import RelayMessageType
 
 
 class EventMessage:
@@ -11,20 +12,24 @@ class EventMessage:
         self.subscription_id = subscription_id
         self.url = url
 
+
 class NoticeMessage:
     def __init__(self, content: str, url: str) -> None:
         self.content = content
         self.url = url
+
 
 class EndOfStoredEventsMessage:
     def __init__(self, subscription_id: str, url: str) -> None:
         self.subscription_id = subscription_id
         self.url = url
 
+
 class OkMessage:
     def __init__(self, content: str, url: str) -> None:
         self.content = content
         self.url = url
+
 
 class MessagePool:
     def __init__(self) -> None:

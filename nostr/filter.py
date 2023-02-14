@@ -4,32 +4,39 @@ from typing import List
 from .event import Event, EventKind
 
 
-
 class Filter:
-    """
-    NIP-01 filtering.
+    """NIP-01 filtering.
 
-    Explicitly supports "#e" and "#p" tag filters via `event_refs` and `pubkey_refs`.
+    Explicitly supports "#e" and "#p" tag filters via `event_refs` and
+    `pubkey_refs`.
 
-    Arbitrary NIP-12 single-letter tag filters are also supported via `add_arbitrary_tag`.
-    If a particular single-letter tag gains prominence, explicit support should be
+    Arbitrary NIP-12 single-letter tag filters are also supported via
+    `add_arbitrary_tag`.
+    If a particular single-letter tag gains prominence, explicit support
+    should be
     added. For example:
-        # arbitrary tag
-        filter.add_arbitrary_tag('t', [hashtags])
+    # arbitrary tag
+    filter.add_arbitrary_tag('t', [hashtags])
 
-        # promoted to explicit support
-        Filter(hashtag_refs=[hashtags])
+    # promoted to explicit support
+    Filter(hashtag_refs=[hashtags])
     """
+
     def __init__(
-            self,
-            event_ids: List[str] = None,
-            kinds: List[EventKind] = None,
-            authors: List[str] = None,
-            since: int = None,
-            until: int = None,
-            event_refs: List[str] = None,       # the "#e" attr; list of event ids referenced in an "e" tag
-            pubkey_refs: List[str] = None,      # The "#p" attr; list of pubkeys referenced in a "p" tag
-            limit: int = None) -> None:
+        self,
+        event_ids: List[str] = None,
+        kinds: List[EventKind] = None,
+        authors: List[str] = None,
+        since: int = None,
+        until: int = None,
+        event_refs: List[
+            str
+        ] = None,  # the "#e" attr; list of event ids referenced in an "e" tag
+        pubkey_refs: List[
+            str
+        ] = None,  # The "#p" attr; list of pubkeys referenced in a "p" tag
+        limit: int = None,
+    ) -> None:
         self.event_ids = event_ids
         self.kinds = kinds
         self.authors = authors
@@ -45,17 +52,13 @@ class Filter:
         if self.pubkey_refs:
             self.add_arbitrary_tag('p', self.pubkey_refs)
 
-
     def add_arbitrary_tag(self, tag: str, values: list):
-        """
-        Filter on any arbitrary tag with explicit handling for NIP-01 and NIP-12
-        single-letter tags.
-        """
+        """Filter on any arbitrary tag with explicit handling for NIP-01 and NIP-12
+        single-letter tags."""
         # NIP-01 'e' and 'p' tags and
         # any NIP-12 single-letter tags must be prefixed with "#"
         tag_key = tag if len(tag) > 1 else f"#{tag}"
         self.tags[tag_key] = values
-
 
     def matches(self, event: Event) -> bool:
         if self.event_ids and event.id not in self.event_ids:
@@ -72,7 +75,7 @@ class Filter:
             return False
 
         if self.tags:
-            e_tag_identifiers = set([e_tag[0] for e_tag in event.tags])
+            e_tag_identifiers = {e_tag[0] for e_tag in event.tags}
             for f_tag, f_tag_values in self.tags.items():
                 # Omit any NIP-01 or NIP-12 "#" chars on single-letter tags
                 f_tag = f_tag.replace("#", "")
@@ -95,7 +98,6 @@ class Filter:
 
         return True
 
-
     def to_json_object(self) -> dict:
         res = {}
         if self.event_ids:
@@ -117,7 +119,7 @@ class Filter:
 
 
 class Filters(UserList):
-    def __init__(self, initlist: "list[Filter]"=[]) -> None:
+    def __init__(self, initlist: "list[Filter]" = []) -> None:
         super().__init__(initlist)
         self.data: "list[Filter]"
 
