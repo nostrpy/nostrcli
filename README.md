@@ -1,4 +1,10 @@
 # nostrpy
+
+| | | |
+| --- | --- | --- |
+| CI/CD | [![codecov](https://codecov.io/gh/nostrpy/nostrcli/branch/main/graph/badge.svg?token=VVTLYM68Z5)](https://codecov.io/gh/nostrpy/nostrcli) | [![CircleCI](https://circleci.com/gh/nostrpy/nostrcli.svg?style=svg)](https://circleci.com/gh/nostrpy/nostrcli) |
+ -----
+
 CLI for [Nostr](https://github.com/nostr-protocol/nostr)
 
 ## Installation
