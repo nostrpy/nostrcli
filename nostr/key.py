@@ -1,3 +1,4 @@
+import binascii
 import secrets
 from base64 import b64decode, b64encode
 from hashlib import sha256
@@ -11,6 +12,8 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from . import bech32
 from .delegation import Delegation
 from .event import EncryptedDirectMessage, Event, EventKind
+
+HAS_ECDH = hasattr(lib, 'secp256k1_ecdh')
 
 
 class PublicKey:
@@ -53,12 +56,32 @@ class PrivateKey:
         raw_secret = bech32.convertbits(data, 5, 8)[:-1]
         return cls(bytes(raw_secret))
 
+    @classmethod
+    def from_hex(cls, hex: str):
+        """Load a PrivateKey from its hex form."""
+        return cls(binascii.unhexlify(hex))
+
     def bech32(self) -> str:
         converted_bits = bech32.convertbits(self.raw_secret, 8, 5)
         return bech32.bech32_encode("nsec", converted_bits, bech32.Encoding.BECH32)
 
     def hex(self) -> str:
         return self.raw_secret.hex()
+
+    def ecdh(self, public_key_hex:str):
+        assert public_key_hex, "No public key defined"
+        if not HAS_ECDH:
+            raise Exception("secp256k1_ecdh not enabled")
+        sk = secp256k1.PrivateKey(self.raw_secret)
+        result = ffi.new('char [32]')
+        pk = secp256k1.PublicKey(bytes.fromhex("02" + public_key_hex))
+        res = lib.secp256k1_ecdh(
+            sk.context.ctx, result, pk.public_key, self.raw_secret, copy_x, ffi.NULL
+        )
+        if not res:
+            raise Exception(f'invalid scalar ({res})')
+
+        return bytes(ffi.buffer(result, 32))
 
     def tweak_add(self, scalar: bytes) -> bytes:
         sk = secp256k1.PrivateKey(self.raw_secret)
@@ -145,9 +168,6 @@ def mine_vanity_key(
         break
 
     return sk
-
-
-ffi = FFI()
 
 
 @ffi.callback(
