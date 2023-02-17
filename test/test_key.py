@@ -32,7 +32,7 @@ class TestEvent:
     def test_sign_event_is_valid(self):
         """Sign should create a signature that can be verified against Event.id."""
         event = Event(content="Hello, world!")
-        self.sender_pk.sign_event(event)
+        event.sign(self.sender_pk.hex())
         assert event.verify()
 
     def test_sign_event_adds_pubkey(self):
