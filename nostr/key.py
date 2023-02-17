@@ -9,7 +9,7 @@ from coincurve._libsecp256k1 import ffi, lib
 from cryptography.hazmat.primitives import padding
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
-from . import bech32
+from .bech32 import bech32_decode, bech32_encode
 from .delegation import Delegation
 from .event import EncryptedDirectMessage, Event, EventKind
 
@@ -18,43 +18,84 @@ HAS_ECDH = hasattr(lib, 'secp256k1_ecdh')
 
 class PublicKey:
     def __init__(self, raw_bytes: bytes) -> None:
-        self.raw_bytes = raw_bytes
+        """
+        :param raw_bytes: The formatted public key.
+        :type data: bytes
+        """
+        if isinstance(raw_bytes, PrivateKey):
+            self.raw_bytes = raw_bytes.public_key.raw_bytes
+        elif isinstance(raw_bytes, secp256k1.keys.PublicKey):
+            self.raw_bytes = raw_bytes.format(compressed=True)[2:]
+        elif isinstance(raw_bytes, secp256k1.keys.PublicKeyXOnly):
+            self.raw_bytes = raw_bytes.format()
+        elif isinstance(raw_bytes, str):
+            self.raw_bytes = binascii.unhexlify(raw_bytes)
+        else:
+            self.raw_bytes = raw_bytes
 
     def bech32(self) -> str:
-        converted_bits = bech32.convertbits(self.raw_bytes, 8, 5)
-        return bech32.bech32_encode("npub", converted_bits, bech32.Encoding.BECH32)
+        return bech32_encode(self.raw_bytes, "npub")
+
+    @property
+    def npub(self):
+        return self.bech32()
 
     def hex(self) -> str:
         return self.raw_bytes.hex()
 
-    def verify_signed_message_hash(self, hash: str, sig: str) -> bool:
-        pk = secp256k1.PublicKey(b"\x02" + self.raw_bytes, True)
-        return pk.schnorr_verify(bytes.fromhex(hash), bytes.fromhex(sig), None, True)
+    def verify(self, sig: bytes, message: bytes) -> bool:
+        pk = secp256k1.PublicKeyXOnly(self.raw_bytes)
+        return pk.verify(sig, message)
+
+    @classmethod
+    def from_hex(cls, hex: str) -> 'PublicKey':
+        return cls(bytes.fromhex(hex))
 
     @classmethod
     def from_npub(cls, npub: str):
         """Load a PublicKey from its bech32/npub form."""
-        hrp, data, spec = bech32.bech32_decode(npub)
-        raw_public_key = bech32.convertbits(data, 5, 8)[:-1]
-        return cls(bytes(raw_public_key))
+        return cls(bytes(bech32_decode(npub)))
+
+    def __repr__(self):
+        pubkey = self.bech32()
+        return f'PublicKey({pubkey[:10]}...{pubkey[-10:]})'
+
+    def __str__(self):
+        """Return public key in hex form
+        :return: string
+        :rtype: str
+        """
+        return self.hex()
+
+    def __bytes__(self):
+        """Return raw bytes
+        :return: Raw bytes
+        :rtype: bytes
+        """
+        return self.raw_bytes
 
 
 class PrivateKey:
     def __init__(self, raw_secret: Optional[bytes] = None) -> None:
+        """
+        :param raw_secret: The secret used to initialize the private key.
+                           If not provided or `None`, a new key will be generated.
+        :type raw_secret: bytes
+        """
         if raw_secret:
             self.raw_secret = raw_secret
         else:
             self.raw_secret = secrets.token_bytes(32)
 
         sk = secp256k1.PrivateKey(self.raw_secret)
-        self.public_key = PublicKey(sk.pubkey.serialize()[1:])
+        self.public_key = PublicKey(sk.public_key_xonly)
 
     @classmethod
     def from_nsec(cls, nsec: str):
-        """Load a PrivateKey from its bech32/nsec form."""
-        hrp, data, spec = bech32.bech32_decode(nsec)
-        raw_secret = bech32.convertbits(data, 5, 8)[:-1]
-        return cls(bytes(raw_secret))
+        """Load a PrivateKey from its bech32/nsec form.
+        :param nsec: the nsec key to be imported
+        """
+        return cls(bytes(bech32_decode(nsec)))
 
     @classmethod
     def from_hex(cls, hex: str):
@@ -62,8 +103,11 @@ class PrivateKey:
         return cls(binascii.unhexlify(hex))
 
     def bech32(self) -> str:
-        converted_bits = bech32.convertbits(self.raw_secret, 8, 5)
-        return bech32.bech32_encode("nsec", converted_bits, bech32.Encoding.BECH32)
+        return bech32_encode(self.raw_secret, "nsec")
+
+    @property
+    def nsec(self):
+        return self.bech32()
 
     def hex(self) -> str:
         return self.raw_secret.hex()
@@ -88,8 +132,7 @@ class PrivateKey:
         return sk.tweak_add(scalar)
 
     def compute_shared_secret(self, public_key_hex: str) -> bytes:
-        pk = secp256k1.PublicKey(bytes.fromhex("02" + public_key_hex), True)
-        return pk.ecdh(self.raw_secret, hashfn=copy_x)
+        return self.ecdh(public_key_hex)
 
     def encrypt_message(self, message: str, public_key_hex: str) -> str:
         padder = padding.PKCS7(128).padder()
@@ -103,7 +146,9 @@ class PrivateKey:
         encryptor = cipher.encryptor()
         encrypted_message = encryptor.update(padded_data) + encryptor.finalize()
 
-        return f"{b64encode(encrypted_message).decode()}?iv={b64encode(iv).decode()}"
+        ret_part1 = b64encode(encrypted_message).decode()
+        ret_part2 = b64encode(iv).decode()
+        return f"{ret_part1}?iv={ret_part2}"
 
     def encrypt_dm(self, dm: EncryptedDirectMessage) -> None:
         dm.content = self.encrypt_message(
@@ -128,6 +173,10 @@ class PrivateKey:
 
         return unpadded_data.decode()
 
+    def sign(self, message: bytes, aux_randomness: bytes = b'') -> str:
+        sk = secp256k1.PrivateKey(self.raw_secret)
+        return sk.sign_schnorr(message, aux_randomness)
+
     def sign_message_hash(self, hash: bytes) -> str:
         sk = secp256k1.PrivateKey(self.raw_secret)
         sig = sk.schnorr_sign(hash, None, raw=True)
@@ -139,15 +188,33 @@ class PrivateKey:
             self.encrypt_dm(edm)
         if event.public_key is None:
             event.public_key = self.public_key.hex()
-        event.signature = self.sign_message_hash(bytes.fromhex(event.id))
+        event.signature = self.sign(bytes.fromhex(event.id))
 
     def sign_delegation(self, delegation: Delegation) -> None:
-        delegation.signature = self.sign_message_hash(
+        delegation.signature = self.sign(
             sha256(delegation.delegation_token.encode()).digest()
         )
 
     def __eq__(self, other):
         return self.raw_secret == other.raw_secret
+
+    def __repr__(self):
+        pubkey = self.public_key.bech32()
+        return f'PrivateKey({pubkey[:10]}...{pubkey[-10:]})'
+
+    def __str__(self):
+        """Return private key in hex form
+        :return: hex string
+        :rtype: str
+        """
+        return self.hex()
+
+    def __bytes__(self):
+        """Return raw bytes
+        :return: Raw bytes
+        :rtype: bytes
+        """
+        return self.raw_secret
 
 
 def mine_vanity_key(
