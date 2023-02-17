@@ -12,7 +12,7 @@ urls = { Homepage = "https://github.com/nostrpy/nostrcli" }
 readme = "README.md"
 requires-python = ">=3.7.0"
 dependencies = [
-    "coincurve>=1.8.0",
+    "coincurve>=18.0.0",
     "cryptography>=38.0.4",
     "websocket-client>=1.4.2",
     "click>=8.1.3",

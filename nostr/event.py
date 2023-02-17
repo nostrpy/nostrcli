@@ -5,7 +5,7 @@ from enum import IntEnum
 from hashlib import sha256
 from typing import List, Optional
 
-from secp256k1 import PrivateKey, PublicKey
+from coincurve import PrivateKey, PublicKey
 
 from .message_type import ClientMessageType
 
