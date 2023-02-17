@@ -62,7 +62,8 @@ class Event:
 
     def sign(self, private_key_hex: str) -> None:
         sk = PrivateKey(bytes.fromhex(private_key_hex))
-        sig = sk.schnorr_sign(bytes.fromhex(self.id), None, raw=True)
+        self.pubkey = sk.public_key.hex()
+        sig = sk.sign(bytes.fromhex(self.id))
         self.signature = sig.hex()
 
     def add_pubkey_ref(self, pubkey: str):

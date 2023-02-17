@@ -112,7 +112,7 @@ class PrivateKey:
     def hex(self) -> str:
         return self.raw_secret.hex()
 
-    def ecdh(self, public_key_hex:str):
+    def ecdh(self, public_key_hex: str):
         assert public_key_hex, "No public key defined"
         if not HAS_ECDH:
             raise Exception("secp256k1_ecdh not enabled")
