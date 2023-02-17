@@ -3,8 +3,8 @@ from base64 import b64decode, b64encode
 from hashlib import sha256
 from typing import Optional, cast
 
-import secp256k1
-from cffi import FFI
+import coincurve as secp256k1
+from coincurve._libsecp256k1 import ffi, lib
 from cryptography.hazmat.primitives import padding
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
