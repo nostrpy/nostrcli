@@ -26,7 +26,7 @@
 import binascii
 import unittest
 
-import pynostr.bech32_util as segwit_addr
+import nostr.bech32 as segwit_addr
 
 
 def segwit_scriptpubkey(witver, witprog):
