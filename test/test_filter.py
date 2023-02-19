@@ -1,81 +1,84 @@
+import unittest
+
 from nostr.event import Event, EventKind
 from nostr.filter import Filter, Filters
 from nostr.key import PrivateKey
 
 
-class TestFilter:
-    def setup_class(self):
-        self.pk1 = PrivateKey()
-        self.pk2 = PrivateKey()
+class TestFilter(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.pk1 = PrivateKey()
+        cls.pk2 = PrivateKey()
 
         """ pk1 kicks off a thread and interacts with pk2 """
-        self.pk1_thread = [
+        cls.pk1_thread = [
             # Note posted by pk1
-            Event(public_key=self.pk1.public_key.hex(), content="pk1's first note!"),
+            Event(public_key=cls.pk1.public_key.hex(), content="pk1's first note!"),
         ]
-        self.pk1_thread.append(
+        cls.pk1_thread.append(
             # Note posted by pk2 in response to pk1's note
             Event(
-                public_key=self.pk2.public_key.hex(),
+                public_key=cls.pk2.public_key.hex(),
                 content="Nice to see you here, pk1!",
                 tags=[
                     [
                         "e",
-                        self.pk1_thread[0].id,
+                        cls.pk1_thread[0].id,
                     ],  # Replies reference which note they're directly responding to
                     [
                         "p",
-                        self.pk1.public_key.hex(),
+                        cls.pk1.public_key.hex(),
                     ],  # Replies reference who they're responding to
                 ],
             )
         )
-        self.pk1_thread.append(
+        cls.pk1_thread.append(
             # Next response note by pk1 continuing thread with pk2
             Event(
-                public_key=self.pk1.public_key.hex(),
+                public_key=cls.pk1.public_key.hex(),
                 content="Thanks! Glad you're here, too, pk2!",
                 tags=[
-                    ["e", self.pk1_thread[0].id],  # Threads reference the original note
+                    ["e", cls.pk1_thread[0].id],  # Threads reference the original note
                     [
                         "e",
-                        self.pk1_thread[-1].id,
+                        cls.pk1_thread[-1].id,
                     ],  # Replies reference which note they're directly responding to
                     [
                         "p",
-                        self.pk2.public_key.hex(),
+                        cls.pk2.public_key.hex(),
                     ],  # Replies reference who they're responding to
                 ],
             )
         )
 
         """ pk2 starts a new thread but no one responds """
-        self.pk2_thread = [
+        cls.pk2_thread = [
             # Note posted by pk2
-            Event(public_key=self.pk2.public_key.hex(), content="pk2's first note!")
+            Event(public_key=cls.pk2.public_key.hex(), content="pk2's first note!")
         ]
-        self.pk2_thread.append(
+        cls.pk2_thread.append(
             # pk2's self-reply
             Event(
-                public_key=self.pk2.public_key.hex(),
+                public_key=cls.pk2.public_key.hex(),
                 content="So... I guess no one's following me.",
-                tags=[["e", self.pk2_thread[0].id]],
+                tags=[["e", cls.pk2_thread[0].id]],
             )
         )
 
         """ pk1 DMs pk2 """
-        self.pk1_pk2_dms = [
+        cls.pk1_pk2_dms = [
             # DM sent by pk1 to pk2
             Event(
-                public_key=self.pk1.public_key.hex(),
+                public_key=cls.pk1.public_key.hex(),
                 content="Hey pk2, here's a secret",
-                tags=[["p", self.pk2.public_key.hex()]],
+                tags=[["p", cls.pk2.public_key.hex()]],
                 kind=EventKind.ENCRYPTED_DIRECT_MESSAGE,
             ),
             Event(
-                public_key=self.pk2.public_key.hex(),
+                public_key=cls.pk2.public_key.hex(),
                 content="Thanks! I'll keep it secure.",
-                tags=[["p", self.pk1.public_key.hex()]],
+                tags=[["p", cls.pk1.public_key.hex()]],
                 kind=EventKind.ENCRYPTED_DIRECT_MESSAGE,
             ),
         ]

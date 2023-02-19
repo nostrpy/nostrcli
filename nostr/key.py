@@ -1,21 +1,37 @@
+import binascii
 import secrets
 from base64 import b64decode, b64encode
 from hashlib import sha256
 from typing import Optional, cast
 
-import secp256k1
-from cffi import FFI
+import coincurve as secp256k1
+from coincurve._libsecp256k1 import ffi, lib
 from cryptography.hazmat.primitives import padding
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
 from . import bech32
 from .delegation import Delegation
-from .event import EncryptedDirectMessage, Event, EventKind
+# from .event import EncryptedDirectMessage, Event, EventKind
+
+HAS_ECDH = hasattr(lib, 'secp256k1_ecdh')
 
 
 class PublicKey:
     def __init__(self, raw_bytes: bytes) -> None:
-        self.raw_bytes = raw_bytes
+        """
+        :param raw_bytes: The formatted public key.
+        :type data: bytes
+        """
+        if isinstance(raw_bytes, PrivateKey):
+            self.raw_bytes = raw_bytes.public_key.raw_bytes
+        elif isinstance(raw_bytes, secp256k1.keys.PublicKey):
+            self.raw_bytes = raw_bytes.format(compressed=True)[2:]
+        elif isinstance(raw_bytes, secp256k1.keys.PublicKeyXOnly):
+            self.raw_bytes = raw_bytes.format()
+        elif isinstance(raw_bytes, str):
+            self.raw_bytes = binascii.unhexlify(raw_bytes)
+        else:
+            self.raw_bytes = raw_bytes
 
     def bech32(self) -> str:
         converted_bits = bech32.convertbits(self.raw_bytes, 8, 5)
@@ -27,6 +43,14 @@ class PublicKey:
     def verify_signed_message_hash(self, hash: str, sig: str) -> bool:
         pk = secp256k1.PublicKey(b"\x02" + self.raw_bytes, True)
         return pk.schnorr_verify(bytes.fromhex(hash), bytes.fromhex(sig), None, True)
+
+    def verify(self, sig: bytes, message: bytes) -> bool:
+        pk = secp256k1.PublicKeyXOnly(self.raw_bytes)
+        return pk.verify(sig, message)
+
+    @classmethod
+    def from_hex(cls, hex: str) -> 'PublicKey':
+        return cls(bytes.fromhex(hex))
 
     @classmethod
     def from_npub(cls, npub: str):
@@ -44,7 +68,7 @@ class PrivateKey:
             self.raw_secret = secrets.token_bytes(32)
 
         sk = secp256k1.PrivateKey(self.raw_secret)
-        self.public_key = PublicKey(sk.pubkey.serialize()[1:])
+        self.public_key = PublicKey(sk.public_key_xonly)
 
     @classmethod
     def from_nsec(cls, nsec: str):
@@ -53,6 +77,11 @@ class PrivateKey:
         raw_secret = bech32.convertbits(data, 5, 8)[:-1]
         return cls(bytes(raw_secret))
 
+    @classmethod
+    def from_hex(cls, hex: str):
+        """Load a PrivateKey from its hex form."""
+        return cls(binascii.unhexlify(hex))
+
     def bech32(self) -> str:
         converted_bits = bech32.convertbits(self.raw_secret, 8, 5)
         return bech32.bech32_encode("nsec", converted_bits, bech32.Encoding.BECH32)
@@ -60,13 +89,30 @@ class PrivateKey:
     def hex(self) -> str:
         return self.raw_secret.hex()
 
+    def ecdh(self, public_key_hex):
+        assert public_key_hex, "No public key defined"
+        if not HAS_ECDH:
+            raise Exception("secp256k1_ecdh not enabled")
+        sk = secp256k1.PrivateKey(self.raw_secret)
+        result = ffi.new('char [32]')
+        pk = secp256k1.PublicKey(bytes.fromhex("02" + public_key_hex))
+        res = lib.secp256k1_ecdh(
+            sk.context.ctx, result, pk.public_key, self.raw_secret, copy_x, ffi.NULL
+        )
+        if not res:
+            raise Exception(f'invalid scalar ({res})')
+
+        return bytes(ffi.buffer(result, 32))
+
+
     def tweak_add(self, scalar: bytes) -> bytes:
         sk = secp256k1.PrivateKey(self.raw_secret)
         return sk.tweak_add(scalar)
 
     def compute_shared_secret(self, public_key_hex: str) -> bytes:
-        pk = secp256k1.PublicKey(bytes.fromhex("02" + public_key_hex), True)
-        return pk.ecdh(self.raw_secret, hashfn=copy_x)
+        return self.ecdh(public_key_hex)
+        # pk = secp256k1.PublicKey(bytes.fromhex("02" + public_key_hex), True)
+        # return pk.ecdh(self.raw_secret, hashfn=copy_x)
 
     def encrypt_message(self, message: str, public_key_hex: str) -> str:
         padder = padding.PKCS7(128).padder()
@@ -82,10 +128,10 @@ class PrivateKey:
 
         return f"{b64encode(encrypted_message).decode()}?iv={b64encode(iv).decode()}"
 
-    def encrypt_dm(self, dm: EncryptedDirectMessage) -> None:
-        dm.content = self.encrypt_message(
-            message=dm.cleartext_content, public_key_hex=dm.recipient_pubkey
-        )
+    # def encrypt_dm(self, dm: EncryptedDirectMessage) -> None:
+    #     dm.content = self.encrypt_message(
+    #         message=dm.cleartext_content, public_key_hex=dm.recipient_pubkey
+    #     )
 
     def decrypt_message(self, encoded_message: str, public_key_hex: str) -> str:
         encoded_data = encoded_message.split("?iv=")
@@ -110,13 +156,9 @@ class PrivateKey:
         sig = sk.schnorr_sign(hash, None, raw=True)
         return sig.hex()
 
-    def sign_event(self, event: Event) -> None:
-        if event.kind == EventKind.ENCRYPTED_DIRECT_MESSAGE and not event.content:
-            edm = cast(EncryptedDirectMessage, event)
-            self.encrypt_dm(edm)
-        if event.public_key is None:
-            event.public_key = self.public_key.hex()
-        event.signature = self.sign_message_hash(bytes.fromhex(event.id))
+    def sign(self, message: bytes, aux_randomness: bytes = b'') -> str:
+        sk = secp256k1.PrivateKey(self.raw_secret)
+        return sk.sign_schnorr(message, aux_randomness)
 
     def sign_delegation(self, delegation: Delegation) -> None:
         delegation.signature = self.sign_message_hash(
@@ -145,9 +187,6 @@ def mine_vanity_key(
         break
 
     return sk
-
-
-ffi = FFI()
 
 
 @ffi.callback(
