@@ -1,9 +1,10 @@
 import json
 import logging
+import threading
 import time
 from dataclasses import dataclass
 from threading import Lock
-from typing import Optional
+from typing import Optional, Union
 
 from websocket import (
     WebSocketApp,
@@ -41,23 +42,30 @@ class RelayProxyConnectionConfig:
 
 
 class Relay:
+    reconnect: bool = True
+    error_counter: int = 0
+    error_threshold: int = 10
+
     def __init__(
         self,
         url: str,
-        policy: RelayPolicy,
         message_pool: MessagePool,
-        subscription: "dict[str, Subscription]" = None,
+        policy: RelayPolicy = RelayPolicy(),
+        ssl_options: dict = None,
+        proxy_config: Union[None, RelayProxyConnectionConfig] = None,
+        subscriptions: "dict[str, Subscription]" = None,
     ) -> None:
         self.url = url
         self.policy = policy
         self.message_pool = message_pool
-        self.subscriptions = subscription or {}
+        self.subscriptions = subscriptions or {}
 
-        # self.proxy_config: RelayProxyConnectionConfig = RelayProxyConnectionConfig()
+        self.ssl_options = ssl_options
+        self.proxy_config = proxy_config
 
         self.lock: Lock = Lock()
-        self.ws = WebSocketApp(
-            url,
+        self.ws: WebSocketApp = WebSocketApp(
+            self.url,
             on_open=self._on_open,
             on_message=self._on_message,
             # on_data=self._on_data,
@@ -68,20 +76,52 @@ class Relay:
         )
         self.active = False
 
-    def connect(self, ssl_options: Optional[dict] = None):
-        self.ws.run_forever(
-            sslopt=ssl_options,
-            # http_proxy_host=self.proxy_config.host,
-            # http_proxy_port=self.proxy_config.port,
-            # proxy_type=self.proxy_config.type
-            ping_interval=60,
-            ping_timeout=10,
-            ping_payload="2",
-            reconnect=30,
-        )
+    def connect(self):
+        if not self.is_connected:
+            self.ws.run_forever(
+                sslopt=self.ssl_options,
+                http_proxy_host=None
+                if self.proxy_config is None
+                else self.proxy_config.host,
+                http_proxy_port=None
+                if self.proxy_config is None
+                else self.proxy_config.port,
+                proxy_type=None if self.proxy_config is None else self.proxy_config.type,
+                ping_interval=60,
+                ping_timeout=10,
+                ping_payload="2",
+                reconnect=30,
+            )
+
+    @property
+    def is_connected(self) -> bool:
+        return False if self.ws.sock is None else self.ws.sock.connected
+
+    def check_reconnect(self):
+        try:
+            self.close()
+        except Exception:
+            pass
+        self.active = False
+        if self.reconnect:
+            time.sleep(1)
+            self.connect()
+
+    def open_connections(self, ssl_options: dict = None):
+        if ssl_options is None:
+            ssl_options = {}
+        self.ssl_options = ssl_options
+        if not self.is_connected:
+            threading.Thread(target=self.connect, name=f"{self.url}-thread").start()
+        time.sleep(2)
+        assert self.is_connected
 
     def close(self):
-        self.ws.close()
+        if self.ws.sock:
+            self.ws.close()
+
+    def close_connections(self):
+        self.close()
 
     def publish(self, message: str):
         try:
@@ -102,6 +142,9 @@ class Relay:
         with self.lock:
             subscription = self.subscriptions[id]
             subscription.filters = filters
+
+    def __repr__(self):
+        return json.dumps(self.to_json_object(), indent=2)
 
     def to_json_object(self) -> dict:
         return {
@@ -131,6 +174,10 @@ class Relay:
 
     def _on_error(self, class_obj, error):
         print(f"ERROR: {self.url}")
+        self.active = False
+        self.error_counter += 1
+        if not self.error_threshold or self.error_counter <= self.error_threshold:
+            self.check_reconnect()
 
     def _on_ping(self, class_obj, message):
         pass

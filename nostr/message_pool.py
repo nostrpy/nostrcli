@@ -1,6 +1,8 @@
 import json
+from dataclasses import dataclass
 from queue import Queue
 from threading import Lock
+from typing import List, Optional
 
 from .event import Event
 from .message_type import RelayMessageType
@@ -12,17 +14,24 @@ class EventMessage:
         self.subscription_id = subscription_id
         self.url = url
 
+    def __repr__(self):
+        return f'EventMessage({self.url}: kind {str(self.event.kind)})'
 
 class NoticeMessage:
     def __init__(self, content: str, url: str) -> None:
         self.content = content
         self.url = url
 
+    def __repr__(self):
+        return f'Notice({self.url}: {self.content})'
 
 class EndOfStoredEventsMessage:
     def __init__(self, subscription_id: str, url: str) -> None:
         self.subscription_id = subscription_id
         self.url = url
+
+    def __repr__(self):
+        return f'EOSE({self.url})'
 
 
 class OkMessage:
@@ -42,6 +51,18 @@ class MessagePool:
 
     def add_message(self, message: str, url: str):
         self._process_message(message, url)
+
+    def get_all(self):
+        results = {"events": [], "notices": [], "eose": [], "ok": []}
+        while self.has_events():
+            results["events"].append(self.get_event())
+        while self.has_notices():
+            results["notices"].append(self.get_notice())
+        while self.has_eose_notices():
+            results["eose"].append(self.get_eose_notice())
+        while self.has_ok_notices():
+            results["ok"].append(self.get_ok_notice())
+        return results
 
     def get_event(self):
         return self.events.get()
@@ -84,3 +105,43 @@ class MessagePool:
             self.eose_notices.put(EndOfStoredEventsMessage(message_json[1], url))
         elif message_type == RelayMessageType.OK:
             self.ok_notices.put(OkMessage(message, url))
+
+    def __repr__(self):
+        return (
+            f'Pool(events({self.events.qsize()}) '
+            f'notices({self.notices.qsize()}) '
+            f'eose({self.eose_notices.qsize()})) '
+            f'ok({self.ok_notices.qsize()}))'
+        )
+
+@dataclass
+class EventMessageStore:
+    eventMessages: Optional[List[EventMessage]] = None
+
+    def add_event(self, event):
+        if self.eventMessages is None:
+            self.eventMessages = []
+        if isinstance(event, list):
+            self.eventMessages += event
+        else:
+            self.eventMessages.append(event)
+
+    def get_newest_event(self):
+        if not self.eventMessages:
+            return None
+        return max(self.eventMessages, key=lambda x: x.event.date_time())
+
+    def get_events_by_url(self, url):
+        return [event for event in self.eventMessages if event.url == url]
+
+    def get_events_by_id(self, subscription_id):
+        return [
+            event
+            for event in self.eventMessages
+            if event.subscription_id == subscription_id
+        ]
+
+    def __repr__(self):
+        if not self.eventMessages:
+            return 'EventMessageStore()'
+        return f'EventMessageStore({len(self.eventMessages)} events)'

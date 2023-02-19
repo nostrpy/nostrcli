@@ -8,6 +8,9 @@ class Subscription:
         self.batch = batch
         self.paused = False
 
+        if not isinstance(self.id, str):
+            raise TypeError("Argument 'id' must be of type str")
+
     def to_json_object(self):
         return {
             "id": self.id,
