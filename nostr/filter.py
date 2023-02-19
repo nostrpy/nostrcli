@@ -1,7 +1,8 @@
+import json
 from collections import UserList
 from typing import List
 
-from .event import Event, EventKind
+from nostr.event import Event, EventKind
 
 
 class Filter:
@@ -60,6 +61,33 @@ class Filter:
         tag_key = tag if len(tag) > 1 else f"#{tag}"
         self.tags[tag_key] = values
 
+    @classmethod
+    def from_json(cls, filters):
+        if "ids" in filters:
+            ret = cls(filters["ids"])
+        else:
+            ret = cls("")
+        if "authors" in filters:
+            ret.authors = filters["authors"]
+        if "kinds" in filters:
+            ret.kinds = filters["kinds"]
+        if "#e" in filters:
+            ret.event_refs = filters["#e"]
+        if "#p" in filters:
+            ret.pubkey_refs = filters["#p"]
+        if "since" in filters:
+            ret.since = filters["since"]
+        if "until" in filters:
+            ret.until = filters["until"]
+        if "limit" in filters:
+            ret.limit = filters["limit"]
+        cls.tags = {}
+        if cls.event_refs:
+            cls.add_arbitrary_tag("e", cls.event_refs)
+        if cls.pubkey_refs:
+            cls.add_arbitrary_tag("p", cls.pubkey_refs)
+        return ret
+
     def matches(self, event: Event) -> bool:
         if self.event_ids and event.id not in self.event_ids:
             return False
@@ -117,6 +145,12 @@ class Filter:
 
         return res
 
+    def __repr__(self):
+        return f"Filters({self.to_json_object()})"
+
+    def __str__(self):
+        return json.dumps(self.to_json_object())
+
 
 class Filters(UserList):
     def __init__(self, initlist: "list[Filter]" = None) -> None:
@@ -130,4 +164,11 @@ class Filters(UserList):
         return False
 
     def to_json_array(self) -> list:
+        """Convert the data of the object to a json array."""
         return [filter.to_json_object() for filter in self.data]
+
+    def __repr__(self):
+        return f"FilterList({self.to_json_array()})"
+
+    def __str__(self):
+        return json.dumps(self.to_json_array())
