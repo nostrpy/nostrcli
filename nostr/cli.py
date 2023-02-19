@@ -1,8 +1,11 @@
+import logging
 import os
 
 import click
 
 from nostr._version import __version__
+
+state = {"verbose": 3}
 
 plugin_folder = os.path.join(os.path.dirname(__file__), "commands")
 
@@ -29,8 +32,20 @@ class CLI(click.MultiCommand):
 
 @click.version_option(__version__, "-v", "--version")
 @click.command(cls=CLI)
-def cli():
-    """The CLI of nostr."""
+def cli(verbose: int = 3):
+    """CLI for nostr."""
+    # Logging
+    state["verbose"] = verbose
+    log = logging.getLogger(__name__)
+    verbosity = ["critical", "error", "warn", "info", "debug"][int(min(verbose, 4))]
+    log.setLevel(getattr(logging, verbosity.upper()))
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+    ch = logging.StreamHandler()
+    ch.setLevel(getattr(logging, verbosity.upper()))
+    ch.setFormatter(formatter)
+    log.addHandler(ch)
 
 
 if __name__ == "__main__":

@@ -17,19 +17,19 @@ CLI for [Nostr](https://github.com/nostr-protocol/nostr)
 **Show nostr version**
 ```bash
 ❯ nostr --version
-nostr, version 0.3.1
+nostr, version 0.4.0
 ```
 
 **Generate a key pair**
 ```bash
-❯ nostr key create
+❯ nostr key new
 Private key: nsec18ty...2xz6
 Public key: npub1rak...58cm
 ```
 
 **Transform a public key to hex format**
 ```bash
-❯ nostr key npub-to-hex --pub-key npub1rak...58cm
+❯ nostr key convert -i npub1rak...58cm
 npub: npub1rak...58cm
 hex: 1f6cada4...449d
 ```

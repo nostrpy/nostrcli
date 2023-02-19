@@ -1,14 +1,15 @@
 import click
+from click_aliases import ClickAliasedGroup
 
 from nostr.key import PrivateKey, PublicKey
 
 
-@click.group()
+@click.group(cls=ClickAliasedGroup)
 def cli():
     """Command related to key(s)."""
 
 
-@cli.command()
+@cli.command(aliases=['gen', 'new'])
 def create():
     """Creates a private and public key."""
     private_key = PrivateKey()
@@ -18,9 +19,12 @@ def create():
 
 
 @cli.command()
-@click.option("-p", "--pub-key", "npub", required=True, type=str)
-def npub_to_hex(npub: str):
+@click.option("-i", "--identifier", required=True, type=str)
+def convert(identifier: str):
     """Converts npub key to hex."""
-    public_key = PublicKey.from_npub(npub)
+    if "npub" in identifier:
+        public_key = PublicKey.from_npub(identifier)
+    else:
+        public_key = PublicKey.from_hex(identifier)
     click.echo(f"npub: {public_key.bech32()}")
     click.echo(f"hex: {public_key.hex()}")
