@@ -57,7 +57,7 @@ def publish(nsec: str, message: str, sleep: int = 2):
     """Sends a message."""
     private_key = PrivateKey.from_nsec(nsec)
     event = Event(content=message, public_key=private_key.public_key.hex())
-    private_key.sign_event(event)
+    event.sign(private_key.hex())
 
     message = json.dumps([ClientMessageType.EVENT, event.to_dict()])
 
@@ -81,7 +81,12 @@ def send(nsec: str, message: str, receiver_npub: str, sleep: int = 2):
     direct_message = EncryptedDirectMessage(
         recipient_pubkey=recipient_pubkey.hex(), cleartext_content=message
     )
-    private_key.sign_event(direct_message)
+    direct_message.encrypt_dm(
+        private_key_hex=private_key.hex(),
+        cleartext_content=message,
+        recipient_pubkey=recipient_pubkey.hex()
+    )
+    direct_message.sign(private_key.hex())
 
     relay_manager = RelayManager()
     relay_manager.add_relay("wss://nostr-pub.wellorder.net")
