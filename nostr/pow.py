@@ -120,7 +120,9 @@ class PowEvent(Pow):
 
     def reset(self):
         event = Event(
-            content=self.event.content, public_key=self.event.public_key, kind=self.event.kind
+            content=self.event.content,
+            public_key=self.event.public_key,
+            kind=self.event.kind,
         )
         all_tags = [["nonce", "1", str(self.difficulty)]]
         all_tags.extend(self.event.tags)

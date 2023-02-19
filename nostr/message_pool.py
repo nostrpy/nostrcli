@@ -17,6 +17,7 @@ class EventMessage:
     def __repr__(self):
         return f'EventMessage({self.url}: kind {str(self.event.kind)})'
 
+
 class NoticeMessage:
     def __init__(self, content: str, url: str) -> None:
         self.content = content
@@ -24,6 +25,7 @@ class NoticeMessage:
 
     def __repr__(self):
         return f'Notice({self.url}: {self.content})'
+
 
 class EndOfStoredEventsMessage:
     def __init__(self, subscription_id: str, url: str) -> None:
@@ -113,6 +115,7 @@ class MessagePool:
             f'eose({self.eose_notices.qsize()})) '
             f'ok({self.ok_notices.qsize()}))'
         )
+
 
 @dataclass
 class EventMessageStore:

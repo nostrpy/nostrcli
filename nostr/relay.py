@@ -86,7 +86,9 @@ class Relay:
                 http_proxy_port=None
                 if self.proxy_config is None
                 else self.proxy_config.port,
-                proxy_type=None if self.proxy_config is None else self.proxy_config.type,
+                proxy_type=None
+                if self.proxy_config is None
+                else self.proxy_config.type,
                 ping_interval=60,
                 ping_timeout=10,
                 ping_payload="2",

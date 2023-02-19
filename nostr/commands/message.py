@@ -84,7 +84,7 @@ def send(nsec: str, message: str, receiver_npub: str, sleep: int = 2):
     direct_message.encrypt_dm(
         private_key_hex=private_key.hex(),
         cleartext_content=message,
-        recipient_pubkey=recipient_pubkey.hex()
+        recipient_pubkey=recipient_pubkey.hex(),
     )
     direct_message.sign(private_key.hex())
 

@@ -37,9 +37,9 @@ def segwit_scriptpubkey(witver, witprog):
 VALID_BECH32 = [
     "A12UEL5L",
     "a12uel5l",
-    "an83characterlonghumanreadablepartthatcontainsthenumber1andtheexcludedcharactersbio1tt5tgs",
+    "an83characterlonghumanreadablepartthatcontainsthenumber1andtheexcludedcharactersbio1tt5tgs",  # noqa: E501
     "abcdef1qpzry9x8gf2tvdw0s3jn54khce6mua7lmqqqxw",
-    "11qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqc8247j",
+    "11qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqc8247j",  # noqa: E501
     "split1checkupstagehandshakeupstreamerranterredcaperred2y9e3w",
     "?1ezyfcl",
 ]
@@ -47,9 +47,9 @@ VALID_BECH32 = [
 VALID_BECH32M = [
     "A1LQFN3A",
     "a1lqfn3a",
-    "an83characterlonghumanreadablepartthatcontainsthetheexcludedcharactersbioandnumber11sg7hg6",
+    "an83characterlonghumanreadablepartthatcontainsthetheexcludedcharactersbioandnumber11sg7hg6",  # noqa: E501
     "abcdef1l7aum6echk45nj3s0wdvt2fg8x9yrzpqzd3ryx",
-    "11llllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllludsr8",
+    "11llllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllludsr8",  # noqa: E501
     "split1checkupstagehandshakeupstreamerranterredcaperredlc445v",
     "?1v759aa",
 ]
@@ -95,7 +95,7 @@ VALID_ADDRESS = [
     ],
     [
         "bc1pw508d6qejxtdg4y5r3zarvary0c5xw7kw508d6qejxtdg4y5r3zarvary0c5xw7kt5nd6y",
-        "5128751e76e8199196d454941c45d1b3a323f1433bd6751e76e8199196d454941c45d1b3a323f1433bd6",
+        "5128751e76e8199196d454941c45d1b3a323f1433bd6751e76e8199196d454941c45d1b3a323f1433bd6",  # noqa: E501
     ],
     ["BC1SW50QGDZ25J", "6002751e"],
     ["bc1zw508d6qejxtdg4y5r3zarvaryvaxxpcs", "5210751e76e8199196d454941c45d1b3a323"],
