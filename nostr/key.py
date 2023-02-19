@@ -2,7 +2,7 @@ import binascii
 import secrets
 from base64 import b64decode, b64encode
 from hashlib import sha256
-from typing import Optional, cast
+from typing import Optional
 
 import coincurve as secp256k1
 from coincurve._libsecp256k1 import ffi, lib

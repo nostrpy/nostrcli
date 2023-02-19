@@ -202,7 +202,8 @@ class TestEncryptedDirectMessage(unittest.TestCase):
         message = "My secret message!"
 
         dm = EncryptedDirectMessage(
-            recipient_pubkey=self.recipient_pubkey, cleartext_content=message,
+            recipient_pubkey=self.recipient_pubkey,
+            cleartext_content=message,
         )
 
         # DM's content field should be initially blank

@@ -4,7 +4,6 @@ from nostr.event import Event
 from nostr.key import PrivateKey
 from nostr.relay_manager import RelayException, RelayManager
 
-
 # def test_only_relay_valid_events():
 #     """Publish_event raise a RelayException if an Event fails verification."""
 #     pk = PrivateKey()
@@ -35,7 +34,10 @@ class TestPrivateKey(unittest.TestCase):
     def test_only_relay_valid_events(self):
         """publish_event raise a RelayException if an Event fails verification."""
         pk = PrivateKey()
-        event = Event(public_key=pk.public_key.hex(), content="Hello, world!",)
+        event = Event(
+            public_key=pk.public_key.hex(),
+            content="Hello, world!",
+        )
 
         relay_manager = RelayManager()
 
