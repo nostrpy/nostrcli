@@ -117,7 +117,7 @@ class Event:
     def has_pubkey_ref(self, pubkey: str) -> bool:
         """Check if a `p` tag to the given pubkey exists."""
         for tag_type, tag in self.tags:
-            if tag_type == 'p' and tag == pubkey:
+            if tag_type == "p" and tag == pubkey:
                 return True
         return False
 
@@ -128,7 +128,7 @@ class Event:
     def has_event_ref(self, event_id: str):
         """Check if a `e` tag to the given event_id exists."""
         for tag_type, tag in self.tags:
-            if tag_type == 'e' and tag == event_id:
+            if tag_type == "e" and tag == event_id:
                 return True
         return False
 
@@ -140,7 +140,7 @@ class Event:
             ret[t] = self.get_tag_list(tag_type=t)
         return ret
 
-    def get_tag_list(self, tag_type: str = 'e'):
+    def get_tag_list(self, tag_type: str = "e"):
         """Returns all tags of given type as list."""
         ret = []
         for _tag_type, _tag in self.tags:
@@ -156,7 +156,7 @@ class Event:
                 ret.append(tag_type)
         return ret
 
-    def get_tag_count(self, tag_type: str = 'e'):
+    def get_tag_count(self, tag_type: str = "e"):
         """Returns all tags of given type as list."""
         count = 0
         for _tag_type, _tag in self.tags:
@@ -195,10 +195,11 @@ class Event:
 
     def __repr__(self):
         note_id = self.bech32()
-        return f'Event({note_id[:10]}...{note_id[-10:]})'
+        return f"Event({note_id[:10]}...{note_id[-10:]})"
 
     def __str__(self):
         return self.to_message()
+
 
 @dataclass
 class EncryptedDirectMessage(Event):

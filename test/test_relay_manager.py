@@ -30,14 +30,12 @@ from nostr.relay_manager import RelayException, RelayManager
 #     pk.sign_event(event)
 #     relay_manager.publish_event(event)
 
+
 class TestPrivateKey(unittest.TestCase):
     def test_only_relay_valid_events(self):
         """publish_event raise a RelayException if an Event fails verification."""
         pk = PrivateKey()
-        event = Event(
-            public_key=pk.public_key.hex(),
-            content="Hello, world!",
-        )
+        event = Event(public_key=pk.public_key.hex(), content="Hello, world!",)
 
         relay_manager = RelayManager()
 
@@ -46,7 +44,7 @@ class TestPrivateKey(unittest.TestCase):
             relay_manager.publish_event(event)
 
         # Attempt to relay with a nonsense signature
-        event.signature = (b'\00' * 64).hex()
+        event.signature = (b"\00" * 64).hex()
         with self.assertRaisesRegex(RelayException, "failed to verify"):
             relay_manager.publish_event(event)
 

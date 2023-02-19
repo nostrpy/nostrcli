@@ -85,9 +85,7 @@ class TestFilter(unittest.TestCase):
 
     def test_match_by_event_id(self):
         """Should match Events by event_id."""
-        filter = Filter(
-            event_ids=[self.pk1_thread[0].id],
-        )
+        filter = Filter(event_ids=[self.pk1_thread[0].id],)
         assert filter.matches(self.pk1_thread[0])
 
         # None of the others should match
@@ -112,9 +110,7 @@ class TestFilter(unittest.TestCase):
 
     def test_match_by_kinds(self):
         """Should match Events by kind."""
-        filter = Filter(
-            kinds=[EventKind.TEXT_NOTE],
-        )
+        filter = Filter(kinds=[EventKind.TEXT_NOTE],)
 
         # Both threads should match
         for event in self.pk1_thread + self.pk2_thread:
@@ -155,9 +151,7 @@ class TestFilter(unittest.TestCase):
 
     def test_match_by_event_refs(self):
         """Should match Events by event_ref 'e' tags."""
-        filter = Filter(
-            event_refs=[self.pk1_thread[0].id],
-        )
+        filter = Filter(event_refs=[self.pk1_thread[0].id],)
 
         # All replies to pk1's initial note should match (even pk1's reply at the end)
         assert filter.matches(self.pk1_thread[1])
@@ -169,9 +163,7 @@ class TestFilter(unittest.TestCase):
 
     def test_match_by_pubkey_refs(self):
         """Should match Events by pubkey_ref 'p' tags."""
-        filter = Filter(
-            pubkey_refs=[self.pk1_thread[0].public_key],
-        )
+        filter = Filter(pubkey_refs=[self.pk1_thread[0].public_key],)
 
         # pk2's reply in pk1's thread should match
         assert filter.matches(self.pk1_thread[1])
@@ -310,8 +302,7 @@ class TestFilter(unittest.TestCase):
     def test_match_by_authors_and_kinds(self):
         """Should match Events by authors AND kinds."""
         filter = Filter(
-            authors=[self.pk1.public_key.hex()],
-            kinds=[EventKind.TEXT_NOTE],
+            authors=[self.pk1.public_key.hex()], kinds=[EventKind.TEXT_NOTE],
         )
 
         # Should match pk1's notes but not pk2's reply
@@ -345,8 +336,7 @@ class TestFilter(unittest.TestCase):
     def test_match_by_kinds_and_pubkey_refs(self):
         """Should match Events by kind AND pubkey_ref 'p' tags."""
         filter = Filter(
-            kinds=[EventKind.TEXT_NOTE],
-            pubkey_refs=[self.pk2.public_key.hex()],
+            kinds=[EventKind.TEXT_NOTE], pubkey_refs=[self.pk2.public_key.hex()],
         )
 
         # Only pk1's reply to pk2 should match
@@ -403,12 +393,8 @@ class TestFilters(TestFilter):
     def test_match_by_authors_or_pubkey_refs(self):
         """Should match on authors or pubkey_refs."""
         # Typical filters for anything sent by or to a pubkey
-        filter1 = Filter(
-            authors=[self.pk1.public_key.hex()],
-        )
-        filter2 = Filter(
-            pubkey_refs=[self.pk1.public_key.hex()],
-        )
+        filter1 = Filter(authors=[self.pk1.public_key.hex()],)
+        filter2 = Filter(pubkey_refs=[self.pk1.public_key.hex()],)
         filters = Filters([filter1, filter2])
 
         # Should match the entire pk1 thread and the DM exchange

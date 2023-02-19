@@ -11,14 +11,12 @@ class TestPrivateKey(unittest.TestCase):
         pk2 = PrivateKey(pk1.raw_secret)
         self.assertEqual(pk1, pk2)
 
-
     def test_eq_false(self):
         """__eq__ should return False when PrivateKeys are not equal."""
         pk1 = PrivateKey()
         pk2 = PrivateKey()
         self.assertNotEqual(pk1.raw_secret, pk2.raw_secret)
         self.assertNotEqual(pk1, pk2)
-
 
     def test_from_nsec(self):
         """PrivateKey.from_nsec should yield the source's raw_secret."""
@@ -126,9 +124,9 @@ class TestPrivateKey(unittest.TestCase):
         )
         self.assertEqual(
             shared_secret1.hex(),
-            '646570d4716e0c7e4106788f113a410d5b647225dca3b47ef98bedb64c8044e1',
+            "646570d4716e0c7e4106788f113a410d5b647225dca3b47ef98bedb64c8044e1",
         )
         self.assertEqual(
             shared_secret2.hex(),
-            '646570d4716e0c7e4106788f113a410d5b647225dca3b47ef98bedb64c8044e1',
+            "646570d4716e0c7e4106788f113a410d5b647225dca3b47ef98bedb64c8044e1",
         )

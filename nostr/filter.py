@@ -83,9 +83,9 @@ class Filter:
             ret.limit = filters["limit"]
         cls.tags = {}
         if cls.event_refs:
-            cls.add_arbitrary_tag('e', cls.event_refs)
+            cls.add_arbitrary_tag("e", cls.event_refs)
         if cls.pubkey_refs:
-            cls.add_arbitrary_tag('p', cls.pubkey_refs)
+            cls.add_arbitrary_tag("p", cls.pubkey_refs)
         return ret
 
     def matches(self, event: Event) -> bool:
@@ -146,10 +146,11 @@ class Filter:
         return res
 
     def __repr__(self):
-        return f'Filters({self.to_json_object()})'
+        return f"Filters({self.to_json_object()})"
 
     def __str__(self):
         return json.dumps(self.to_json_object())
+
 
 class Filters(UserList):
     def __init__(self, initlist: "list[Filter]" = None) -> None:
@@ -167,7 +168,7 @@ class Filters(UserList):
         return [filter.to_json_object() for filter in self.data]
 
     def __repr__(self):
-        return f'FilterList({self.to_json_array()})'
+        return f"FilterList({self.to_json_array()})"
 
     def __str__(self):
         return json.dumps(self.to_json_array())

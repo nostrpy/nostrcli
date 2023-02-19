@@ -11,9 +11,10 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
 from . import bech32
 from .delegation import Delegation
+
 # from .event import EncryptedDirectMessage, Event, EventKind
 
-HAS_ECDH = hasattr(lib, 'secp256k1_ecdh')
+HAS_ECDH = hasattr(lib, "secp256k1_ecdh")
 
 
 class PublicKey:
@@ -49,7 +50,7 @@ class PublicKey:
         return pk.verify(sig, message)
 
     @classmethod
-    def from_hex(cls, hex: str) -> 'PublicKey':
+    def from_hex(cls, hex: str) -> "PublicKey":
         return cls(bytes.fromhex(hex))
 
     @classmethod
@@ -94,16 +95,15 @@ class PrivateKey:
         if not HAS_ECDH:
             raise Exception("secp256k1_ecdh not enabled")
         sk = secp256k1.PrivateKey(self.raw_secret)
-        result = ffi.new('char [32]')
+        result = ffi.new("char [32]")
         pk = secp256k1.PublicKey(bytes.fromhex("02" + public_key_hex))
         res = lib.secp256k1_ecdh(
             sk.context.ctx, result, pk.public_key, self.raw_secret, copy_x, ffi.NULL
         )
         if not res:
-            raise Exception(f'invalid scalar ({res})')
+            raise Exception(f"invalid scalar ({res})")
 
         return bytes(ffi.buffer(result, 32))
-
 
     def tweak_add(self, scalar: bytes) -> bytes:
         sk = secp256k1.PrivateKey(self.raw_secret)
@@ -156,7 +156,7 @@ class PrivateKey:
         sig = sk.schnorr_sign(hash, None, raw=True)
         return sig.hex()
 
-    def sign(self, message: bytes, aux_randomness: bytes = b'') -> str:
+    def sign(self, message: bytes, aux_randomness: bytes = b"") -> str:
         sk = secp256k1.PrivateKey(self.raw_secret)
         return sk.sign_schnorr(message, aux_randomness)
 

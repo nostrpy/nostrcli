@@ -22,8 +22,7 @@ class TestEvent(unittest.TestCase):
         event.created_at = 1671406583
         event.sign(pk1.hex())
         self.assertEqual(
-            "23411895658d374ec922adf774a70172290b2c738ae67815bd8945e5d8fff3bb",
-            event.id
+            "23411895658d374ec922adf774a70172290b2c738ae67815bd8945e5d8fff3bb", event.id
         )
         self.assertTrue(event.verify())
 
@@ -60,12 +59,12 @@ class TestEvent(unittest.TestCase):
         some_event_id = "some_event_id"
         event = Event(content="Adding an 'e' tag")
         event.add_event_ref(some_event_id)
-        self.assertTrue(['e', some_event_id] in event.tags)
-        self.assertEqual(event.get_tag_count('e'), 1)
-        self.assertEqual(event.get_tag_count('p'), 0)
-        self.assertEqual(event.get_tag_list('e'), [some_event_id])
-        self.assertEqual(event.get_tag_list('p'), [])
-        self.assertEqual(event.get_tag_types(), ['e'])
+        self.assertTrue(["e", some_event_id] in event.tags)
+        self.assertEqual(event.get_tag_count("e"), 1)
+        self.assertEqual(event.get_tag_count("p"), 0)
+        self.assertEqual(event.get_tag_list("e"), [some_event_id])
+        self.assertEqual(event.get_tag_list("p"), [])
+        self.assertEqual(event.get_tag_types(), ["e"])
         self.assertEqual(event.get_tag_dict(), {"e": [some_event_id]})
         self.assertTrue(event.has_event_ref(some_event_id))
 
@@ -74,12 +73,12 @@ class TestEvent(unittest.TestCase):
         some_pubkey = "some_pubkey"
         event = Event(content="Adding a 'p' tag")
         event.add_pubkey_ref(some_pubkey)
-        self.assertTrue(['p', some_pubkey] in event.tags)
-        self.assertEqual(event.get_tag_count('p'), 1)
-        self.assertEqual(event.get_tag_count('e'), 0)
-        self.assertEqual(event.get_tag_list('p'), [some_pubkey])
-        self.assertEqual(event.get_tag_list('e'), [])
-        self.assertEqual(event.get_tag_types(), ['p'])
+        self.assertTrue(["p", some_pubkey] in event.tags)
+        self.assertEqual(event.get_tag_count("p"), 1)
+        self.assertEqual(event.get_tag_count("e"), 0)
+        self.assertEqual(event.get_tag_list("p"), [some_pubkey])
+        self.assertEqual(event.get_tag_list("e"), [])
+        self.assertEqual(event.get_tag_types(), ["p"])
         self.assertEqual(event.get_tag_dict(), {"p": [some_pubkey]})
         self.assertTrue(event.has_pubkey_ref(some_pubkey))
 
@@ -153,8 +152,7 @@ class TestEncryptedDirectMessage(unittest.TestCase):
     def test_content_field_moved_to_cleartext_content(self):
         """Should transfer `content` field data to `cleartext_content`"""
         dm = EncryptedDirectMessage(
-            content="My message!",
-            recipient_pubkey=self.recipient_pubkey
+            content="My message!", recipient_pubkey=self.recipient_pubkey
         )
         self.assertEqual(dm.content, None)
         self.assertNotEqual(dm.cleartext_content, None)
@@ -182,8 +180,7 @@ class TestEncryptedDirectMessage(unittest.TestCase):
     def test_unencrypted_dm_has_undefined_id(self):
         """Should raise Exception if `id` is requested before DM is encrypted."""
         dm = EncryptedDirectMessage(
-            cleartext_content="My message!",
-            recipient_pubkey=self.recipient_pubkey
+            cleartext_content="My message!", recipient_pubkey=self.recipient_pubkey
         )
 
         with pytest.raises(Exception) as e:
@@ -195,7 +192,7 @@ class TestEncryptedDirectMessage(unittest.TestCase):
         dm.encrypt_dm(
             self.sender_pk.hex(),
             cleartext_content="My message!",
-            recipient_pubkey=self.recipient_pubkey
+            recipient_pubkey=self.recipient_pubkey,
         )
         assert dm.id is not None
 
@@ -205,8 +202,7 @@ class TestEncryptedDirectMessage(unittest.TestCase):
         message = "My secret message!"
 
         dm = EncryptedDirectMessage(
-            recipient_pubkey=self.recipient_pubkey,
-            cleartext_content=message,
+            recipient_pubkey=self.recipient_pubkey, cleartext_content=message,
         )
 
         # DM's content field should be initially blank
