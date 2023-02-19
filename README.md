@@ -17,7 +17,7 @@ CLI for [Nostr](https://github.com/nostr-protocol/nostr)
 **Show nostr version**
 ```bash
 ❯ nostr --version
-nostr, version 0.0.3.dev5+g649c474.d20230212
+nostr, version 0.3.1
 ```
 
 **Generate a key pair**
