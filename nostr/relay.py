@@ -160,10 +160,10 @@ class Relay:
 
     def _on_open(self, class_obj):
         self.active = time.time()
-        print(f"OPEN: {self.url}")
+        # print(f"OPEN: {self.url}")
 
     def _on_close(self, class_obj, status_code, message):
-        print(f"CLOSE: {self.url} - {message}")
+        # print(f"CLOSE: {self.url} - {message}")
         self.active = False
 
     def _on_message(self, class_obj, message: str = None):
@@ -175,7 +175,7 @@ class Relay:
         print(f"DATA: {self.url} - {message}")
 
     def _on_error(self, class_obj, error):
-        print(f"ERROR: {self.url}")
+        # print(f"ERROR: {self.url}")
         self.active = False
         self.error_counter += 1
         if not self.error_threshold or self.error_counter <= self.error_threshold:

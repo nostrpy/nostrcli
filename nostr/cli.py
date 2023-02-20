@@ -5,7 +5,6 @@ import click
 
 from nostr._version import __version__
 
-state = {"verbose": 3}
 
 plugin_folder = os.path.join(os.path.dirname(__file__), "commands")
 
@@ -35,7 +34,6 @@ class CLI(click.MultiCommand):
 def cli(verbose: int = 3):
     """CLI for nostr."""
     # Logging
-    state["verbose"] = verbose
     log = logging.getLogger(__name__)
     verbosity = ["critical", "error", "warn", "info", "debug"][int(min(verbose, 4))]
     log.setLevel(getattr(logging, verbosity.upper()))
