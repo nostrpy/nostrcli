@@ -22,7 +22,6 @@ def cli():
 @click.option("--sleep", "sleep", type=int, default=2)
 def receive(npub: str, limit: int = 10, sleep: int = 2):
     """Receives messages from npub address."""
-    click.echo(f"npub: {npub}")
     author = PublicKey.from_npub(npub)
     filters = Filters(
         [Filter(authors=[author.hex()], kinds=[EventKind.TEXT_NOTE], limit=limit)]
@@ -36,17 +35,33 @@ def receive(npub: str, limit: int = 10, sleep: int = 2):
     relay_manager.add_relay("wss://relay.damus.io")
     relay_manager.add_subscription(subscription_id, filters)
 
+    def get_events(relay_manager):
+        events = []
+        while relay_manager.message_pool.has_events():
+            event_msg = relay_manager.message_pool.get_event()
+            events.append(event_msg.event.content)
+        return events
+
+    def get_notices(relay_manager):
+        notices = []
+        while relay_manager.message_pool.has_notices():
+            notice_msg = relay_manager.message_pool.get_notice()
+            notices.append(notice_msg.content)
+        return notices
+
     with relay_manager:
         time.sleep(sleep)  # allow the connections to open
         message = json.dumps(request)
         relay_manager.publish_message(message)
         time.sleep(sleep)  # allow the messages to send
-        while relay_manager.message_pool.has_events():
-            event_msg = relay_manager.message_pool.get_event()
-            print(event_msg.event.content)
-        while relay_manager.message_pool.has_notices():
-            notice_msg = relay_manager.message_pool.get_notice()
-            print(notice_msg.content)
+
+        events = get_events(relay_manager=relay_manager)
+        notices = get_notices(relay_manager=relay_manager)
+        click.echo(
+            json.dumps(
+                {"Public key": npub, "Events": events, "Notices": notices}, indent=2
+            )
+        )
 
 
 @cli.command()
@@ -59,14 +74,16 @@ def publish(nsec: str, message: str, sleep: int = 2):
     event = Event(content=message, public_key=private_key.public_key.hex())
     event.sign(private_key.hex())
 
-    message = json.dumps([ClientMessageType.EVENT, event.to_dict()])
+    msg = json.dumps([ClientMessageType.EVENT, event.to_dict()])
 
     relay_manager = RelayManager()
     relay_manager.add_relay("wss://nostr-pub.wellorder.net")
     relay_manager.add_relay("wss://relay.damus.io")
     with relay_manager:
         time.sleep(sleep)  # allow the connections to open
-        relay_manager.publish_message(message)
+        relay_manager.publish_message(msg)
+
+    click.echo(json.dumps({"Message": message}, indent=2))
 
 
 @cli.command()
@@ -95,3 +112,5 @@ def send(nsec: str, message: str, receiver_npub: str, sleep: int = 2):
     with relay_manager:
         time.sleep(sleep)  # allow the connections to open
         relay_manager.publish_event(direct_message)
+
+    click.echo(json.dumps({"Message": message}, indent=2))

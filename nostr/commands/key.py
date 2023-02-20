@@ -1,3 +1,5 @@
+import json
+
 import click
 from click_aliases import ClickAliasedGroup
 
@@ -14,8 +16,13 @@ def create():
     """Creates a private and public key."""
     private_key = PrivateKey()
     public_key = private_key.public_key
-    click.echo(f"Private key: {private_key.bech32()}")
-    click.echo(f"Public key: {public_key.bech32()}")
+
+    click.echo(
+        json.dumps(
+            {"Private key": private_key.bech32(), "Public key": public_key.bech32()},
+            indent=2,
+        )
+    )
 
 
 @cli.command()
@@ -26,5 +33,7 @@ def convert(identifier: str):
         public_key = PublicKey.from_npub(identifier)
     else:
         public_key = PublicKey.from_hex(identifier)
-    click.echo(f"npub: {public_key.bech32()}")
-    click.echo(f"hex: {public_key.hex()}")
+
+    click.echo(
+        json.dumps({"npub": public_key.bech32(), "hex": public_key.hex()}, indent=2)
+    )

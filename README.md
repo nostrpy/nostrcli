@@ -17,38 +17,55 @@ CLI for [Nostr](https://github.com/nostr-protocol/nostr)
 **Show nostr version**
 ```bash
 ❯ nostr --version
-nostr, version 0.4.0
+nostr, version 0.5.0
 ```
 
 **Generate a key pair**
 ```bash
 ❯ nostr key new
-Private key: nsec18ty...2xz6
-Public key: npub1rak...58cm
+{
+  "Private key": "nsec1w54...edu3",
+  "Public key": "npub1s92...7ckp"
+}
 ```
 
-**Transform a public key to hex format**
+**Transform a public key to hex format, or from hex format to public key format**
 ```bash
-❯ nostr key convert -i npub1rak...58cm
-npub: npub1rak...58cm
-hex: 1f6cada4...449d
+❯ nostr key convert -i 1a60c40a7...b472
+{
+  "npub": "npub1rfs...c9tg",
+  "hex": "1a60c40a7...b472"
+}
 ```
 
 **Publish a message**
 ```bash
 ❯ nostr message publish -s <the sender nsec key> -m "Hello, publishing a message through nostr CLI."
+{
+  "Message": "Hello, publishing a message through nostr CLI."
+}
 ```
 
 **Send an encryped direct message**
 ```bash
 ❯ nostr message send -s <the sender nsec key> -m "Hello, sending an encryped direct message" -p <the receiver npub key>
+{
+  "Message": "Hello, sending an encryped direct message"
+}
 ```
 
 **Receive message(s)**
 ```
 ❯ nostr message receive -p <the npub key to receive the messages>
 Hello, publishing a message through nostr CLI.
-...
+{
+  "Public key": "npub1rfs...c9tg",
+  "Events": [
+    "Hello, publishing a message through nostr CLI.",
+    "Hello, sending an encryped direct message"
+  ],
+  "Notices": []
+}
 ```
 
 
