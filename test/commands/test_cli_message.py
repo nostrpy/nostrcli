@@ -7,7 +7,7 @@ from click.testing import CliRunner
 from nostr.commands.message import publish, receive, send
 
 
-class TestCommandsMessage(unittest.TestCase):
+class TestCLIMessage(unittest.TestCase):
     def test_publish(self):
         # GIVEN
         nsec = "nsec1lrjqzalcev9ard0274pu8ynwx0xzzexh56sfn0c97rumh8f2tfcqd3lf8h"

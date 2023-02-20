@@ -7,7 +7,7 @@ from click.testing import CliRunner
 from nostr.commands.key import convert, create
 
 
-class TestCommandKey(unittest.TestCase):
+class TestCLIKey(unittest.TestCase):
     def test_create(self):
         # GIVEN
         runner = CliRunner()
