@@ -56,15 +56,11 @@ def receive(npub: str, limit: int = 10, sleep: int = 2):
         time.sleep(sleep)  # allow the messages to send
 
         events = get_events(relay_manager=relay_manager)
-        notices = get_notices(
-            relay_manager=relay_manager
-        )
+        notices = get_notices(relay_manager=relay_manager)
         click.echo(
-            json.dumps({
-                "Public key": npub,
-                "Events": events,
-                "Notices": notices
-            }, indent = 2)
+            json.dumps(
+                {"Public key": npub, "Events": events, "Notices": notices}, indent=2
+            )
         )
 
 
@@ -87,11 +83,7 @@ def publish(nsec: str, message: str, sleep: int = 2):
         time.sleep(sleep)  # allow the connections to open
         relay_manager.publish_message(msg)
 
-    click.echo(
-        json.dumps({
-            "Message": message
-        }, indent = 2)
-    )
+    click.echo(json.dumps({"Message": message}, indent=2))
 
 
 @cli.command()
@@ -121,8 +113,4 @@ def send(nsec: str, message: str, receiver_npub: str, sleep: int = 2):
         time.sleep(sleep)  # allow the connections to open
         relay_manager.publish_event(direct_message)
 
-    click.echo(
-        json.dumps({
-            "Message": message
-        }, indent = 2)
-    )
+    click.echo(json.dumps({"Message": message}, indent=2))

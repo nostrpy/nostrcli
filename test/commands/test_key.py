@@ -1,11 +1,10 @@
-
 import json
 import unittest
-
-from click.testing import CliRunner
 from unittest.mock import ANY
 
-from nostr.commands.key import create, convert
+from click.testing import CliRunner
+
+from nostr.commands.key import convert, create
 
 
 class TestKey(unittest.TestCase):
@@ -18,10 +17,9 @@ class TestKey(unittest.TestCase):
 
         # THEN
         self.assertEqual(result.exit_code, 0)
-        self.assertEqual(json.loads(result.output), {
-            "Private key": ANY,
-            "Public key": ANY
-        })
+        self.assertEqual(
+            json.loads(result.output), {"Private key": ANY, "Public key": ANY}
+        )
 
     def test_convert_npub(self):
         # GIVEN
@@ -39,10 +37,7 @@ class TestKey(unittest.TestCase):
 
         # THEN
         self.assertEqual(result.exit_code, 0)
-        self.assertEqual(json.loads(result.output), {
-            "npub": npub,
-            "hex": ANY
-        })
+        self.assertEqual(json.loads(result.output), {"npub": npub, "hex": ANY})
 
     def test_convert_hex(self):
         # GIVEN
@@ -60,7 +55,4 @@ class TestKey(unittest.TestCase):
 
         # THEN
         self.assertEqual(result.exit_code, 0)
-        self.assertEqual(json.loads(result.output), {
-            "npub": ANY,
-            "hex": hex
-        })
+        self.assertEqual(json.loads(result.output), {"npub": ANY, "hex": hex})

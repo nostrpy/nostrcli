@@ -5,7 +5,6 @@ import click
 
 from nostr._version import __version__
 
-
 plugin_folder = os.path.join(os.path.dirname(__file__), "commands")
 
 

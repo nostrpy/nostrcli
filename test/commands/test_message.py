@@ -1,15 +1,10 @@
-
 import json
 import unittest
-
-from click.testing import CliRunner
 from unittest.mock import ANY
 
-from nostr.commands.message import (
-    publish,
-    send,
-    receive,
-)
+from click.testing import CliRunner
+
+from nostr.commands.message import publish, receive, send
 
 
 class TestMessage(unittest.TestCase):
@@ -24,9 +19,7 @@ class TestMessage(unittest.TestCase):
 
         # THEN
         self.assertEqual(result.exit_code, 0)
-        self.assertEqual(json.loads(result.output), {
-            "Message": message
-        })
+        self.assertEqual(json.loads(result.output), {"Message": message})
 
     def test_send(self):
         # GIVEN
@@ -38,21 +31,12 @@ class TestMessage(unittest.TestCase):
         # WHEN
         result = runner.invoke(
             send,
-            [
-                '-s',
-                nsec,
-                '-m',
-                message,
-                '-p',
-                npub
-            ],
+            ['-s', nsec, '-m', message, '-p', npub],
         )
 
         # THEN
         self.assertEqual(result.exit_code, 0)
-        self.assertEqual(json.loads(result.output), {
-            "Message": message
-        })
+        self.assertEqual(json.loads(result.output), {"Message": message})
 
     def test_receive(self):
         # GIVEN
@@ -70,8 +54,7 @@ class TestMessage(unittest.TestCase):
 
         # THEN
         self.assertEqual(result.exit_code, 0)
-        self.assertEqual(json.loads(result.output), {
-            "Public key": npub,
-            "Events": ANY,
-            "Notices": ANY
-        })
+        self.assertEqual(
+            json.loads(result.output),
+            {"Public key": npub, "Events": ANY, "Notices": ANY},
+        )
