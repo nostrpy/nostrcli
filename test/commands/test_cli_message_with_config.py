@@ -1,22 +1,30 @@
 import json
 import unittest
+from pathlib import Path
 from unittest.mock import ANY
 
+import hcl2
 from click.testing import CliRunner
 
 from nostr.commands.message import cli
 
 
-class TestCLIMessage(unittest.TestCase):
+class TestCLIMessageWithConfig(unittest.TestCase):
+    def setUp(self):
+        self.config_file = Path.cwd().joinpath('test', 'fixtures', 'config.hcl')
+        with open(self.config_file) as file:
+            self.config = hcl2.load(file)
+
     def test_publish(self):
         # GIVEN
-        nsec = "nsec1lrjqzalcev9ard0274pu8ynwx0xzzexh56sfn0c97rumh8f2tfcqd3lf8h"
-        message = "Hello nostr world!"
+        message = "Hello nostr world!!"
         runner = CliRunner()
 
         # WHEN
         result = runner.invoke(
-            cli, ['publish', '-s', nsec, '-m', message], catch_exceptions=False
+            cli,
+            ['-c', self.config_file, 'publish', '-m', message],
+            catch_exceptions=False,
         )
 
         # THEN
@@ -25,15 +33,13 @@ class TestCLIMessage(unittest.TestCase):
 
     def test_send(self):
         # GIVEN
-        nsec = "nsec1jqaxtwk4tymddju9dmn58tdxgwgl5ck23gg847fla9cyuslxklrq86fcjd"
-        npub = "npub1mg2nzunrsk9df94zr3uudhzltnu6lzq2muax09xmhu5gxxrvnkqsvpjg3p"
-        message = "Hello nostr world!"
+        message = "Hello nostr world!!"
         runner = CliRunner()
 
         # WHEN
         result = runner.invoke(
             cli,
-            ['send', '-s', nsec, '-m', message, '-p', npub],
+            ['-c', self.config_file, 'send', '-m', message, '-i', 'Ray'],
         )
 
         # THEN
@@ -42,16 +48,17 @@ class TestCLIMessage(unittest.TestCase):
 
     def test_receive(self):
         # GIVEN
-        npub = "npub1mg2nzunrsk9df94zr3uudhzltnu6lzq2muax09xmhu5gxxrvnkqsvpjg3p"
         runner = CliRunner()
 
         # WHEN
         result = runner.invoke(
             cli,
             [
+                '-c',
+                self.config_file,
                 'receive',
-                '-p',
-                npub,
+                '-i',
+                'jon',
             ],
         )
 
@@ -59,5 +66,9 @@ class TestCLIMessage(unittest.TestCase):
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(
             json.loads(result.output),
-            {"Public key(s)": [npub], "Events": ANY, "Notices": ANY},
+            {
+                "Public key(s)": [self.config['nostr'][0]['listen'][0]['jon']['npub']],
+                "Events": ANY,
+                "Notices": ANY,
+            },
         )
