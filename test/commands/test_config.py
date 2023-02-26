@@ -32,7 +32,8 @@ class TestConfig(unittest.TestCase):
 
     def test_existing_file_in_home_directory(self):
         # GIVEN
-        Path.cwd().joinpath(self.filename).unlink(missing_ok=True)
+        if Path.cwd().joinpath(self.filename).exists():
+            Path.cwd().joinpath(self.filename).unlink()
         self.home_directory.joinpath(self.filename).touch()
         expected_path = self.home_directory.joinpath(self.filename)
         # WHEN
@@ -42,7 +43,8 @@ class TestConfig(unittest.TestCase):
 
     def test_file_not_found(self):
         # GIVEN
-        Path.cwd().joinpath(self.filename).unlink(missing_ok=True)
+        if Path.cwd().joinpath(self.filename).exists():
+            Path.cwd().joinpath(self.filename).unlink()
         shutil.rmtree(self.home_directory, ignore_errors=True)
         # WHEN
         actual = Config.locate()
