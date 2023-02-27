@@ -17,6 +17,7 @@ dependencies = [
     "websocket-client>=1.4.2",
     "click>=8.1.3",
     "click-aliases>=1.0.1",
+    "python-hcl2>=4.3.0",
 ]
 license = {file = "LICENSE"}
 classifiers=[
@@ -32,7 +33,8 @@ write_to = "nostr/_version.py"
 [project.optional-dependencies]
 test = [
   "pytest >=7.2.0",
-  "pytest-cov[all]"
+  "pytest-cov[all]",
+  "pre-commit >=3.1.0",
 ]
 
 [project.scripts]

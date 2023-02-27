@@ -17,7 +17,7 @@ CLI for [Nostr](https://github.com/nostr-protocol/nostr)
 **Show nostr version**
 ```bash
 ❯ nostr --version
-nostr, version 0.5.0
+nostr, version 0.6.0
 ```
 
 **Generate a key pair**
@@ -57,7 +57,6 @@ nostr, version 0.5.0
 **Receive message(s)**
 ```
 ❯ nostr message receive -p <the npub key to receive the messages>
-Hello, publishing a message through nostr CLI.
 {
   "Public key": "npub1rfs...c9tg",
   "Events": [
@@ -67,6 +66,77 @@ Hello, publishing a message through nostr CLI.
   "Notices": []
 }
 ```
+
+### Simplify the CLI with a config file: `config.hcl`:
+```config.hcl
+nostr {
+    relays = [
+        "wss://nostr-pub.wellorder.net",
+        "wss://relay.damus.io",
+    ]
+
+    self {
+        name = "Ali Kiten"
+
+        nsec = "nsec1jqa...fcjd"
+    }
+
+    receiver "Ray" {
+        name = "Ray Nostr"
+
+        npub = "npub1q75...c62u"
+    }
+
+    listen "jon" {
+        name = "Jonathon Gate"
+
+        npub = "npub1s9c...a9je"
+    }
+
+    listen "jack" {
+        name = "Jack Hoose"
+
+        npub = "npub1s9c...a9je"
+    }
+}
+```
+By default, nostr will search the current path `config.hcl` first, then `${HOME}/.nostr/config.hcl`.
+
+You can also manually specify the config file by:
+```
+❯ nostr message -c <path/to/the/config.hcl> receive -i jack
+```
+Once setting up the config file, the above message commands could be much simpler:
+
+**Publish a message with config file**
+```bash
+❯ nostr message publish -m "Hello, publishing a message through nostr CLI."
+{
+  "Message": "Hello, publishing a message through nostr CLI."
+}
+```
+
+**Send an encryped direct message**
+```bash
+❯ nostr message send -m "Hello, sending an encryped direct message" -i <the receiver identifier, like "Ray" in the above sample>
+{
+  "Message": "Hello, sending an encryped direct message"
+}
+```
+
+**Receive message(s)**
+```
+❯ nostr message receive -i <the listen indentifier in the above sample config file>
+{
+  "Public key": "npub1rfs...c9tg",
+  "Events": [
+    "Hello, publishing a message through nostr CLI.",
+    "Hello, sending an encryped direct message"
+  ],
+  "Notices": []
+}
+```
+
 
 
 ## Development & Test

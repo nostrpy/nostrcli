@@ -1,8 +1,10 @@
 import json
 import unittest
+from pathlib import Path
 from unittest import mock
 from unittest.mock import ANY, MagicMock, patch
 
+import hcl2
 from click.testing import CliRunner
 
 from nostr.commands.message import cli
@@ -10,12 +12,16 @@ from nostr.event import Event
 from nostr.message_pool import EventMessage
 
 
-class TestCLIMessage(unittest.TestCase):
+class TestCLIMessageWithConfig(unittest.TestCase):
+    def setUp(self):
+        self.config_file = Path.cwd().joinpath('test', 'fixtures', 'config.hcl')
+        with open(self.config_file) as file:
+            self.config = hcl2.load(file)
+
     @patch('nostr.commands.message.RelayManager', autospec=True)
     def test_publish(self, mock_relay_manager):
         # GIVEN
-        nsec = "nsec1lrjqzalcev9ard0274pu8ynwx0xzzexh56sfn0c97rumh8f2tfcqd3lf8h"
-        message = "Hello nostr world!"
+        message = "Hello nostr world!!"
         runner = CliRunner()
 
         mock_manager = MagicMock()
@@ -26,7 +32,7 @@ class TestCLIMessage(unittest.TestCase):
         # WHEN
         result = runner.invoke(
             cli,
-            ['publish', '-s', nsec, '-m', message, '--sleep', 0],
+            ['-c', self.config_file, 'publish', '-m', message, '--sleep', 0],
             catch_exceptions=False,
         )
 
@@ -39,9 +45,7 @@ class TestCLIMessage(unittest.TestCase):
     @patch('nostr.commands.message.RelayManager', autospec=True)
     def test_send(self, mock_relay_manager):
         # GIVEN
-        nsec = "nsec1jqaxtwk4tymddju9dmn58tdxgwgl5ck23gg847fla9cyuslxklrq86fcjd"
-        npub = "npub1mg2nzunrsk9df94zr3uudhzltnu6lzq2muax09xmhu5gxxrvnkqsvpjg3p"
-        message = "Hello nostr world!"
+        message = "Hello nostr world!!"
         runner = CliRunner()
 
         mock_manager = MagicMock()
@@ -52,7 +56,7 @@ class TestCLIMessage(unittest.TestCase):
         # WHEN
         result = runner.invoke(
             cli,
-            ['send', '-s', nsec, '-m', message, '-p', npub, '--sleep', 0],
+            ['-c', self.config_file, 'send', '-m', message, '-i', 'Ray', '--sleep', 0],
         )
 
         # THEN
@@ -64,7 +68,6 @@ class TestCLIMessage(unittest.TestCase):
     @patch('nostr.commands.message.RelayManager', autospec=True)
     def test_receive(self, mock_relay_manager):
         # GIVEN
-        npub = "npub1mg2nzunrsk9df94zr3uudhzltnu6lzq2muax09xmhu5gxxrvnkqsvpjg3p"
         runner = CliRunner()
 
         mock_manager = MagicMock()
@@ -82,14 +85,18 @@ class TestCLIMessage(unittest.TestCase):
         # WHEN
         result = runner.invoke(
             cli,
-            ['receive', '-p', npub, '-s', 0],
+            ['-c', self.config_file, 'receive', '-i', 'jon', '-s', 0],
         )
 
         # THEN
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(
             json.loads(result.output),
-            {"Public key(s)": [npub], "Events": ANY, "Notices": ANY},
+            {
+                "Public key(s)": [self.config['nostr'][0]['listen'][0]['jon']['npub']],
+                "Events": ANY,
+                "Notices": ANY,
+            },
         )
         mock_manager.add_relay.assert_has_calls([mock.call(ANY), mock.call(ANY)])
         mock_manager.publish_message.assert_called()
