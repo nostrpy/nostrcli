@@ -56,7 +56,7 @@ def cli(ctx, config: str = None):
 @click.option("-i", "--identifier", required=False, type=str)
 @click.option("-p", "--pub-key", "npub", required=False, type=str)
 @click.option("-l", "--limit", "limit", type=int, default=10)
-@click.option("--sleep", "sleep", type=int, default=2)
+@click.option("-s", "--sleep", "sleep", type=int, default=2)
 @click.pass_context
 def receive(ctx: dict, identifier: str, npub: str, limit: int = 10, sleep: int = 2):
     """Receives messages from npub address."""
@@ -116,6 +116,7 @@ def receive(ctx: dict, identifier: str, npub: str, limit: int = 10, sleep: int =
                 {"Public key(s)": npubs, "Events": events, "Notices": notices}, indent=2
             )
         )
+    return 0
 
 
 @cli.command()
