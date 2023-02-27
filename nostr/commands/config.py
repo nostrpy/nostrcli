@@ -18,12 +18,14 @@ class Config:
         # 1. ${CURRENT_PATH}/config.hcl
         # 2. ${HOME}/.nostr/config.hcl
         """
-        fullpath = Path.cwd().joinpath(cls.filename)
-        if fullpath.exists():
-            return fullpath
-        fullpath = Path.home().joinpath('.nostr', cls.filename)
-        if fullpath.exists():
-            return fullpath
+        paths = [
+            Path.cwd().joinpath(cls.filename),
+            Path.home().joinpath('.nostr', cls.filename),
+        ]
+
+        for path in paths:
+            if path.exists():
+                return path
 
         return None
 
@@ -45,9 +47,3 @@ class Config:
         """
         if content:
             return json.dumps(content, indent=2)
-
-
-if __name__ == "__main__":
-    print(
-        Config.dump(Config.load(Path.cwd().joinpath('test', 'fixtures', 'config.hcl')))
-    )

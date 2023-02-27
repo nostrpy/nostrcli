@@ -1,79 +1,75 @@
-import shutil
 import unittest
-from pathlib import Path
-from unittest.mock import Mock, mock_open, patch
+from unittest.mock import mock_open, patch
 
 from nostr.commands.config import Config
 
 
 class TestConfig(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.filename = 'config.hcl'
-
-        cls.home_directory = Path.home().joinpath('.nostr')
-        cls.home_directory.mkdir(exist_ok=True)
-
-    @classmethod
-    def tearDownClass(cls):
-        if Path.cwd().joinpath(cls.filename).exists():
-            Path.cwd().joinpath(cls.filename).unlink()
-        if cls.home_directory.exists():
-            shutil.rmtree(cls.home_directory, ignore_errors=True)
-
-    def test_existing_file_in_cwd(self):
+    @patch('nostr.commands.config.Path')
+    def test_locate_with_existing_file_in_cwd(self, mock_path):
         # GIVEN
-        Path.cwd().joinpath(self.filename).touch()
-        expected_path = Path.cwd().joinpath(self.filename)
+        expected_path = mock_path('/cwd/path/to/config.hcl')
+        # Mock the cwd method to return a known path
+        mock_path.cwd.return_value.joinpath.return_value = expected_path
+        mock_path.cwd.return_value.joinpath.return_value.exists.return_value = True
+
+        mock_path.home.return_value.joinpath.return_value.exists.return_value = False
+
         # WHEN
         actual_path = Config.locate()
         # THEN
         self.assertEqual(expected_path, actual_path)
+        mock_path.cwd.return_value.joinpath.assert_called_once_with('config.hcl')
 
-    def test_existing_file_in_home_directory(self):
+    @patch('nostr.commands.config.Path')
+    def test_locate_with_existing_file_in_home_directory(self, mock_path):
         # GIVEN
-        if Path.cwd().joinpath(self.filename).exists():
-            Path.cwd().joinpath(self.filename).unlink()
-        self.home_directory.joinpath(self.filename).touch()
-        expected_path = self.home_directory.joinpath(self.filename)
+        expected_path = mock_path('/home/path/to/config.hcl')
+        # Mock the home method to return a known path
+        mock_path.home.return_value.joinpath.return_value = expected_path
+        mock_path.home.return_value.joinpath.return_value.exists.return_value = True
+
+        mock_path.cwd.return_value.joinpath.return_value.exists.return_value = False
         # WHEN
         actual_path = Config.locate()
         # THEN
         self.assertEqual(expected_path, actual_path)
+        mock_path.home.return_value.joinpath.assert_called_once_with(
+            '.nostr', 'config.hcl'
+        )
 
-    def test_file_not_found(self):
+    @patch('nostr.commands.config.Path')
+    def test_locate_file_not_found(self, mock_path):
         # GIVEN
-        if Path.cwd().joinpath(self.filename).exists():
-            Path.cwd().joinpath(self.filename).unlink()
-        shutil.rmtree(self.home_directory, ignore_errors=True)
+        mock_path.cwd.return_value.joinpath.return_value.exists.return_value = False
+        mock_path.home.return_value.joinpath.return_value.exists.return_value = False
         # WHEN
         actual = Config.locate()
         # THEN
         self.assertEqual(None, actual)
 
+    @patch('nostr.commands.config.Config.locate', return_value="test.hcl")
     @patch('builtins.open', new_callable=mock_open, read_data='key = "value"')
-    def test_load_valid_file(self, mock_file):
-        # Mock the locate method to return a valid file path
-        Config.locate = Mock()
-        Config.locate.return_value = "test.hcl"
+    def test_load_valid_file(self, mock_file, mock_locate):
         config = Config.load()
         mock_file.assert_called_once_with("test.hcl")
         self.assertEqual(config, {'key': 'value'})
+        mock_locate.assert_called_once_with()
 
+    @patch('nostr.commands.config.Config.locate')
     @patch('builtins.open', new_callable=mock_open, read_data='key = "value"')
-    def test_load_valid_file_with_param(self, mock_file):
-        # Mock the locate method to return a valid file path
+    def test_load_valid_file_with_param(self, mock_file, mock_locate):
         config = Config.load("test.hcl")
         mock_file.assert_called_once_with("test.hcl")
         self.assertEqual(config, {'key': 'value'})
+        mock_locate.assert_not_called()
 
+    @patch('nostr.commands.config.Config.locate', return_value=None)
     @patch('builtins.open', side_effect=FileNotFoundError)
-    def test_load_file_not_found(self, mock_file):
-        # Mock the locate method to return None
-        Config.locate = Mock()
-        Config.locate.return_value = None
+    def test_load_file_not_found(self, mock_file, mock_locate):
         config = Config.load()
         self.assertEqual(config, {})
+        mock_locate.assert_called_once_with()
 
     def test_dump_with_content(self):
         content = {"key": "value"}
